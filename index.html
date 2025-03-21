@@ -3,28 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Precioss - Lavandería</title>
+    <title>Lavandería - Servicios</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
             margin: 0;
-            background: url(imagenes/Inagura2.jpg) no-repeat center center fixed;
+            background: url('imagenes/Inagura2.jpg') no-repeat center center fixed;
             background-size: cover;
             color: white;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
+            flex-direction: column;
         }
         .container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
             background: rgba(0, 0, 0, 0.7);
             padding: 20px;
             border-radius: 10px;
             width: 300px;
+            margin-top: 20px;
         }
         h2 {
             background: rgba(0, 0, 0, 0.5);
@@ -57,10 +56,20 @@
             padding: 10px;
             border-radius: 10px;
         }
+        .menu button {
+            margin: 5px;
+            padding: 10px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="menu">
+        <button onclick="mostrarSeccion('calculo')">Calcular Precios de Servicio</button>
+        <button onclick="mostrarSeccion('recibo')">Crear Recibos</button>
+    </div>
+
+    <div id="calculo" class="container">
         <h2>Calculadora de Precios - Lavandería</h2>
         <form id="calcForm">
             <label>Cantidad de ropa de color (kg):</label>
@@ -85,6 +94,29 @@
         </div>
     </div>
 
+    <div id="recibo" class="container" style="display:none;">
+        <h2>Crear Recibo</h2>
+        <input type="password" id="password" placeholder="Ingrese contraseña">
+        <button onclick="verificarAcceso()">Acceder</button>
+        <div id="formRecibo" style="display:none;">
+            <form>
+                <label>Nombre del Cliente:</label>
+                <input type="text" id="cliente">
+                
+                <label>Fecha:</label>
+                <input type="date" id="fecha">
+                
+                <label>Kilos de ropa:</label>
+                <input type="number" id="kilos" min="0">
+                
+                <label>Total a pagar ($):</label>
+                <input type="number" id="totalRecibo" min="0">
+                
+                <button type="button" onclick="generarRecibo()">Generar Recibo</button>
+            </form>
+        </div>
+    </div>
+
     <script>
         function calcularPrecio() {
             let color = parseInt(document.getElementById("color").value) || 0;
@@ -99,6 +131,29 @@
             let total = (color + blanca) * servicio;
             document.getElementById("total").textContent = total;
             document.getElementById("resultado").style.display = "block";
+        }
+
+        function mostrarSeccion(seccion) {
+            document.getElementById("calculo").style.display = seccion === "calculo" ? "block" : "none";
+            document.getElementById("recibo").style.display = seccion === "recibo" ? "block" : "none";
+        }
+
+        function verificarAcceso() {
+            let password = document.getElementById("password").value;
+            if (password === "costa2025") {
+                document.getElementById("formRecibo").style.display = "block";
+            } else {
+                alert("Contraseña incorrecta");
+            }
+        }
+
+        function generarRecibo() {
+            let cliente = document.getElementById("cliente").value;
+            let fecha = document.getElementById("fecha").value;
+            let kilos = document.getElementById("kilos").value;
+            let total = document.getElementById("totalRecibo").value;
+
+            alert(`Recibo generado:\nCliente: ${cliente}\nFecha: ${fecha}\nKilos: ${kilos}\nTotal: $${total}`);
         }
     </script>
 </body>
