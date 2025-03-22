@@ -61,100 +61,22 @@
             padding: 10px;
             cursor: pointer;
         }
+        .social {
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="menu">
-        <button onclick="mostrarSeccion('calculo')">Calcular Precios de Servicio</button>
-        <button onclick="mostrarSeccion('recibo')">Crear Recibos</button>
+        <button onclick="window.location.href='calcular.html'">Ir a la Calculadora</button>
+        <button onclick="window.location.href='recibos.html'">Ir a Recibos</button>
     </div>
-
-    <div id="calculo" class="container">
-        <h2>Calculadora de Precios - Lavandería</h2>
-        <form id="calcForm">
-            <label>Cantidad de ropa de color (kg):</label>
-            <input type="number" id="color" min="0" value="0">
-
-            <label>Cantidad de ropa blanca (kg):</label>
-            <input type="number" id="blanca" min="0" value="0">
-
-            <label>Tipo de servicio:</label>
-            <select id="servicio">
-                <option value="0">Seleccione un servicio</option>
-                <option value="20">Básico ($20/kg)</option>
-                <option value="25">Premium ($25/kg)</option>
-                <option value="30">Express ($30/kg)</option>
-            </select>
-
-            <button type="button" onclick="calcularPrecio()">Calcular precio</button>
-        </form>
-
-        <div id="resultado" class="resultado" style="display:none;">
-            <h3>Total a pagar: $<span id="total"></span></h3>
-        </div>
+    
+    <div class="social">
+        <p>Síguenos en nuestras redes sociales:</p>
+        <a href="#" target="_blank">Facebook</a> |
+        <a href="#" target="_blank">Instagram</a> |
+        <a href="#" target="_blank">Twitter</a>
     </div>
-
-    <div id="recibo" class="container" style="display:none;">
-        <h2>Crear Recibo</h2>
-        <input type="password" id="password" placeholder="Ingrese contraseña">
-        <button onclick="verificarAcceso()">Acceder</button>
-        <div id="formRecibo" style="display:none;">
-            <form>
-                <label>Nombre del Cliente:</label>
-                <input type="text" id="cliente">
-                
-                <label>Fecha:</label>
-                <input type="date" id="fecha">
-                
-                <label>Kilos de ropa:</label>
-                <input type="number" id="kilos" min="0">
-                
-                <label>Total a pagar ($):</label>
-                <input type="number" id="totalRecibo" min="0">
-                
-                <button type="button" onclick="generarRecibo()">Generar Recibo</button>
-            </form>
-        </div>
-    </div>
-
-    <script>
-        function calcularPrecio() {
-            let color = parseInt(document.getElementById("color").value) || 0;
-            let blanca = parseInt(document.getElementById("blanca").value) || 0;
-            let servicio = parseInt(document.getElementById("servicio").value) || 0;
-
-            if (servicio === 0) {
-                alert("Por favor, selecciona un tipo de servicio.");
-                return;
-            }
-
-            let total = (color + blanca) * servicio;
-            document.getElementById("total").textContent = total;
-            document.getElementById("resultado").style.display = "block";
-        }
-
-        function mostrarSeccion(seccion) {
-            document.getElementById("calculo").style.display = seccion === "calculo" ? "block" : "none";
-            document.getElementById("recibo").style.display = seccion === "recibo" ? "block" : "none";
-        }
-
-        function verificarAcceso() {
-            let password = document.getElementById("password").value;
-            if (password === "costa2025") {
-                document.getElementById("formRecibo").style.display = "block";
-            } else {
-                alert("Contraseña incorrecta");
-            }
-        }
-
-        function generarRecibo() {
-            let cliente = document.getElementById("cliente").value;
-            let fecha = document.getElementById("fecha").value;
-            let kilos = document.getElementById("kilos").value;
-            let total = document.getElementById("totalRecibo").value;
-
-            alert(`Recibo generado:\nCliente: ${cliente}\nFecha: ${fecha}\nKilos: ${kilos}\nTotal: $${total}`);
-        }
-    </script>
 </body>
 </html>
