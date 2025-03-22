@@ -18,6 +18,7 @@
             height: 100vh;
             flex-direction: column;
             transition: background 0.5s ease-in-out;
+            overflow-y: auto;
         }
         .container {
             background: rgba(0, 0, 0, 0.7);
@@ -49,6 +50,8 @@
             padding: 15px;
             border-radius: 10px;
             text-align: left;
+            width: 90%;
+            max-width: 400px;
         }
     </style>
 </head>
@@ -80,10 +83,13 @@
         <input type="number" id="total" min="0" required>
         <label>Fecha de entrega:</label>
         <input type="date" id="fechaEntrega" required>
+        <label>Hora de entrega:</label>
+        <input type="time" id="horaEntrega" required>
         <button onclick="generarRecibo()">Generar Recibo</button>
-        <div id="recibo" class="hidden"></div>
         <button onclick="window.location.href='index.html'">Regresar a Inicio</button>
     </div>
+
+    <div id="recibo" class="hidden"></div>
 
     <script>
         function verificarPassword() {
@@ -91,7 +97,6 @@
             if (password === "costa2025") {
                 document.getElementById("loginForm").classList.add("hidden");
                 document.getElementById("reciboForm").classList.remove("hidden");
-                // Cambio de fondo al acceder a la sección de recibos
                 document.body.style.background = "url('imagenes/logo.jpg') no-repeat center center fixed";
                 document.body.style.backgroundSize = "cover";
             } else {
@@ -107,12 +112,13 @@
             const fechaIngreso = document.getElementById("fechaIngreso").value;
             const total = document.getElementById("total").value;
             const fechaEntrega = document.getElementById("fechaEntrega").value;
+            const horaEntrega = document.getElementById("horaEntrega").value;
             
-            if (!folio || !cliente || !servicio || !kilos || !fechaIngreso || !total || !fechaEntrega) {
+            if (!folio || !cliente || !servicio || !kilos || !fechaIngreso || !total || !fechaEntrega || !horaEntrega) {
                 alert("Por favor, complete todos los campos.");
                 return;
             }
-
+            
             document.getElementById("recibo").innerHTML = `
                 <h3>Gracias por visitar Lavandería JC.</h3>
                 <p>Recuerda que nosotros nos preocupamos por tus prendas.</p>
@@ -122,10 +128,13 @@
                 <p><strong>Servicio:</strong> ${servicio}</p>
                 <p><strong>Kilos de ropa:</strong> ${kilos} kg</p>
                 <p><strong>Fecha de ingreso:</strong> ${fechaIngreso}</p>
+                <p>La fecha y hora en la que podras pasar por tu ropa:</p>
                 <p><strong>Fecha de entrega:</strong> ${fechaEntrega}</p>
+                <p><strong>Hora de entrega:</strong> ${horaEntrega}</p>
                 <p><strong>Total a pagar:</strong> $${total}</p>
             `;
             document.getElementById("recibo").classList.remove("hidden");
+            document.getElementById("reciboForm").scrollIntoView({ behavior: 'smooth' });
         }
     </script>
 </body>
