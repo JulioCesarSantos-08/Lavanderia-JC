@@ -53,6 +53,14 @@
             width: 90%;
             max-width: 400px;
         }
+        .folio {
+            color: red;
+            font-weight: bold;
+            font-size: 1.5em;
+        }
+        .total {
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -128,15 +136,15 @@
                 <h2>Gracias por visitar Lavandería JC.</h2>
                 <h3>Recuerda que nosotros nos preocupamos por tus prendas.</h3>
                 <p>Tu recibo del día de hoy es:</p>
-                <p><strong>Folio de recibo:</strong> ${folio}</p>
+                <p><strong>Folio de recibo:</strong> <span class="folio">${folio}</span></p>
                 <p><strong>Cliente:</strong> ${cliente}</p>
                 <p><strong>Servicio:</strong> ${servicio}</p>
                 <p><strong>Kilos de ropa:</strong> ${kilos} kg</p>
                 <p><strong>Fecha de ingreso:</strong> ${fechaIngreso}</p>
-                <p>La fecha y hora en la que podras pasar por tu ropa:</p>
+                <p>La fecha y hora en la que podrás pasar por tu ropa es:</p>
                 <p><strong>Fecha de entrega:</strong> ${fechaEntrega}</p>
                 <p><strong>Hora de entrega:</strong> ${horaEntrega} pm</p>
-                <p><strong>Total a pagar:</strong> $${total}</p>
+                <p><strong>Total a pagar:</strong> <span class="total">$${total}</span></p>
             `;
             document.getElementById("recibo").classList.remove("hidden");
             document.getElementById("reciboForm").scrollIntoView({ behavior: 'smooth' });
