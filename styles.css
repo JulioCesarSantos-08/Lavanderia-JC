@@ -11,6 +11,8 @@ body {
     align-items: center;
     height: 100vh;
     flex-direction: column;
+    overflow-y: auto; /* Permite el desplazamiento vertical */
+    height: auto; /* Ajusta la altura automáticamente */
 }
 
 .container {
