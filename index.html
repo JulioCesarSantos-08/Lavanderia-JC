@@ -30,40 +30,37 @@
             padding: 10px;
             border-radius: 10px;
         }
-        form {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            width: 100%;
-        }
-        label {
-            font-weight: bold;
-        }
-        input, select, button {
+        .menu button {
+            margin: 5px;
             padding: 10px;
             font-size: 16px;
             border: none;
             border-radius: 5px;
-        }
-        button {
             background-color: #007bff;
             color: white;
             cursor: pointer;
-        }
-        .resultado {
-            margin-top: 15px;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 10px;
-            border-radius: 10px;
-        }
-        .menu button {
-            margin: 5px;
-            padding: 10px;
-            cursor: pointer;
+            width: 200px;
         }
         .social {
             margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
         }
+        .social a {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            text-decoration: none;
+            color: white;
+            width: 200px;
+            text-align: center;
+        }
+        .whatsapp { background-color: #25D366; }
+        .facebook { background-color: #1877F2; }
+        .tienda { background-color: #ff9900; }
     </style>
 </head>
 <body>
@@ -74,9 +71,9 @@
     
     <div class="social">
         <p>Síguenos en nuestras redes sociales:</p>
-        <a href="#" target="_blank">Facebook</a> |
-        <a href="#" target="_blank">Instagram</a> |
-        <a href="#" target="_blank">Twitter</a>
+        <a href="https://wa.me/message/ZQROKPMTPKWJB1" target="_blank" class="whatsapp">WhatsApp</a>
+        <a href="https://www.facebook.com/share/12DwtMiTMmk/" target="_blank" class="facebook">Facebook</a>
+        <a href="https://tienda-online-jc.vercel.app/" target="_blank" class="tienda">Tienda Online JC</a>
     </div>
 </body>
 </html>
