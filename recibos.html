@@ -25,7 +25,7 @@
             width: 90%;
             max-width: 400px;
         }
-        input, button {
+        input, select, button {
             padding: 10px;
             font-size: 16px;
             border: none;
@@ -52,23 +52,35 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container" id="loginForm">
         <h2>Crear Recibos</h2>
         <label>Ingrese la contraseña:</label>
         <input type="password" id="password">
         <button onclick="verificarPassword()">Ingresar</button>
-        
-        <div id="reciboForm" class="hidden">
-            <h3>Datos del Recibo</h3>
-            <label>Nombre del Cliente:</label>
-            <input type="text" id="cliente" required>
-            <label>Servicio:</label>
-            <input type="text" id="servicio" required>
-            <label>Total a pagar:</label>
-            <input type="number" id="total" min="0" required>
-            <button onclick="generarRecibo()">Generar Recibo</button>
-            <div id="recibo" class="hidden"></div>
-        </div>
+    </div>
+    
+    <div class="container hidden" id="reciboForm">
+        <h3>Datos del Recibo</h3>
+        <label>Nombre del Cliente:</label>
+        <input type="text" id="cliente" required>
+        <label>Servicio:</label>
+        <select id="servicio">
+            <option value="Básico">Básico</option>
+            <option value="Premium">Premium</option>
+            <option value="Express">Express</option>
+        </select>
+        <label>Kilos de ropa:</label>
+        <input type="number" id="kilos" min="0" required>
+        <label>Folio de recibo:</label>
+        <input type="text" id="folio" required>
+        <label>Fecha de ingreso:</label>
+        <input type="date" id="fechaIngreso" required>
+        <label>Total a pagar:</label>
+        <input type="number" id="total" min="0" required>
+        <label>Fecha de entrega:</label>
+        <input type="date" id="fechaEntrega" required>
+        <button onclick="generarRecibo()">Generar Recibo</button>
+        <div id="recibo" class="hidden"></div>
         <button onclick="window.location.href='index.html'">Regresar a Inicio</button>
     </div>
 
@@ -76,6 +88,7 @@
         function verificarPassword() {
             const password = document.getElementById("password").value;
             if (password === "costa2025") {
+                document.getElementById("loginForm").classList.add("hidden");
                 document.getElementById("reciboForm").classList.remove("hidden");
             } else {
                 alert("Contraseña incorrecta");
@@ -85,9 +98,13 @@
         function generarRecibo() {
             const cliente = document.getElementById("cliente").value;
             const servicio = document.getElementById("servicio").value;
+            const kilos = document.getElementById("kilos").value;
+            const folio = document.getElementById("folio").value;
+            const fechaIngreso = document.getElementById("fechaIngreso").value;
             const total = document.getElementById("total").value;
+            const fechaEntrega = document.getElementById("fechaEntrega").value;
             
-            if (!cliente || !servicio || !total) {
+            if (!cliente || !servicio || !kilos || !folio || !fechaIngreso || !total || !fechaEntrega) {
                 alert("Por favor, complete todos los campos.");
                 return;
             }
@@ -96,6 +113,10 @@
                 <h3>Recibo</h3>
                 <p><strong>Cliente:</strong> ${cliente}</p>
                 <p><strong>Servicio:</strong> ${servicio}</p>
+                <p><strong>Kilos de ropa:</strong> ${kilos} kg</p>
+                <p><strong>Folio de recibo:</strong> ${folio}</p>
+                <p><strong>Fecha de ingreso:</strong> ${fechaIngreso}</p>
+                <p><strong>Fecha de entrega:</strong> ${fechaEntrega}</p>
                 <p><strong>Total a pagar:</strong> $${total}</p>
             `;
             document.getElementById("recibo").classList.remove("hidden");
