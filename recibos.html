@@ -104,14 +104,19 @@
             }
         }
 
+        function formatDate(dateString) {
+            const [year, month, day] = dateString.split("-");
+            return `${day}-${month}-${year}`;
+        }
+
         function generarRecibo() {
             const cliente = document.getElementById("cliente").value;
             const servicio = document.getElementById("servicio").value;
             const kilos = document.getElementById("kilos").value;
             const folio = document.getElementById("folio").value;
-            const fechaIngreso = document.getElementById("fechaIngreso").value;
+            const fechaIngreso = formatDate(document.getElementById("fechaIngreso").value);
             const total = document.getElementById("total").value;
-            const fechaEntrega = document.getElementById("fechaEntrega").value;
+            const fechaEntrega = formatDate(document.getElementById("fechaEntrega").value);
             const horaEntrega = document.getElementById("horaEntrega").value;
             
             if (!folio || !cliente || !servicio || !kilos || !fechaIngreso || !total || !fechaEntrega || !horaEntrega) {
