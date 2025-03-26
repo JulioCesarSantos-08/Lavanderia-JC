@@ -16,6 +16,31 @@
             background-color: #f0f0f0;
             flex-direction: column;
         }
+        .loader-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .loader img {
+            width: 120px;
+            height: 120px;
+        }
+        .content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100vh;
+            visibility: hidden;
+        }
         .menu, .social {
             display: flex;
             flex-direction: column;
@@ -36,20 +61,35 @@
             font-weight: bold;
         }
     </style>
+    <script>
+        window.onload = function() {
+            setTimeout(function() {
+                document.querySelector(".loader-container").style.display = "none";
+                document.querySelector(".content").style.visibility = "visible";
+            }, 4000);
+        };
+    </script>
 </head>
 <body>
-    <div class="menu">
-        <button onclick="window.location.href='calcular.html'">Ir a la Calculadora</button>
-        <button onclick="window.location.href='recibos.html'">Ir a Recibos</button>
+    <div class="loader-container">
+        <div class="loader">
+            <img src="imagenes/cargando.gif" alt="Cargando...">
+        </div>
     </div>
-    
-    <div class="social">
-        <p>Síguenos en nuestras redes sociales:</p>
-        <a href="https://wa.me/message/ZQROKPMTPKWJB1" target="_blank" class="whatsapp">WhatsApp</a>
-        <a href="https://www.facebook.com/share/12DwtMiTMmk/" target="_blank" class="facebook">Facebook</a>
-        <a href="https://tienda-online-jc.vercel.app/" target="_blank" class="tienda">Tienda Online JC</a>
-        <a href="https://maps.app.goo.gl/ie6BAwzGN4JYDQhr6?g_st=aw" target="_blank" class="ubicacion">Nos Ubicamos</a>
-        <a href="anuncios.html" class="anuncios">Anuncios</a>
+    <div class="content">
+        <div class="menu">
+            <button onclick="window.location.href='calcular.html'">Ir a la Calculadora</button>
+            <button onclick="window.location.href='recibos.html'">Ir a Recibos</button>
+        </div>
+        
+        <div class="social">
+            <p>Síguenos en nuestras redes sociales:</p>
+            <a href="https://wa.me/message/ZQROKPMTPKWJB1" target="_blank" class="whatsapp">WhatsApp</a>
+            <a href="https://www.facebook.com/share/12DwtMiTMmk/" target="_blank" class="facebook">Facebook</a>
+            <a href="https://tienda-online-jc.vercel.app/" target="_blank" class="tienda">Tienda Online JC</a>
+            <a href="https://maps.app.goo.gl/ie6BAwzGN4JYDQhr6?g_st=aw" target="_blank" class="ubicacion">Nos Ubicamos</a>
+            <a href="anuncios.html" class="anuncios">Anuncios</a>
+        </div>
     </div>
 </body>
 </html>
