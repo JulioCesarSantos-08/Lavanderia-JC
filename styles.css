@@ -50,6 +50,18 @@ input, select {
     margin: 10px 0;
 }
 
+/* Estilos para descuentos de lavadas */
+.lavadora-icono {
+    width: 30px;
+    height: 30px;
+    margin: 2px;
+}
+.lavadas-contenedor {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin: 10px 0;
+}
 /* Estilos para botones de redes sociales */
 .social {
     margin-top: 20px;

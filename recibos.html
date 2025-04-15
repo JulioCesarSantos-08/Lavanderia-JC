@@ -11,7 +11,6 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
             background: url('imagenes/Inagura2.jpg') no-repeat center center fixed;
             background-size: cover;
             color: white;
@@ -62,6 +61,11 @@
         .total {
             font-weight: bold;
         }
+        .lavadoras-contenedor img {
+            width: 30px;
+            height: auto;
+            margin-right: 5px;
+        }
     </style>
 </head>
 <body>
@@ -86,6 +90,9 @@
         
         <label>Kilos de ropa:</label>
         <input type="number" id="kilos" min="0" required>
+
+        <label>Número de lavadas acumuladas:</label>
+        <input type="number" id="lavadas" min="0" max="7" required>
         
         <label>Folio de recibo:</label>
         <input type="text" id="folio" required>
@@ -133,6 +140,7 @@
             const cliente = document.getElementById("cliente").value;
             const servicio = document.getElementById("servicio").value;
             const kilos = document.getElementById("kilos").value;
+            const lavadas = parseInt(document.getElementById("lavadas").value);
             const folio = document.getElementById("folio").value;
             const fechaIngreso = formatDate(document.getElementById("fechaIngreso").value);
             const total = document.getElementById("total").value;
@@ -140,9 +148,23 @@
             const horaEntrega = document.getElementById("horaEntrega").value;
             const ropaEntregada = document.getElementById("ropaEntregada").value.trim();
 
-            if (!folio || !cliente || !servicio || !kilos || !fechaIngreso || !total || !fechaEntrega || !horaEntrega || !ropaEntregada) {
+            if (!folio || !cliente || !servicio || !kilos || isNaN(lavadas) || !fechaIngreso || !total || !fechaEntrega || !horaEntrega || !ropaEntregada) {
                 alert("Por favor, complete todos los campos.");
                 return;
+            }
+
+            let lavadorasHTML = '';
+            for (let i = 0; i < lavadas; i++) {
+                lavadorasHTML += `<img src="imagenes/lavadora.png" class="lavadora-icono">`;
+            }
+
+            let mensajeLavadas = "";
+            if (lavadas < 1) {
+                mensajeLavadas = "Sigue acumulando lavadas";
+            } else if (lavadas < 4) {
+                mensajeLavadas = "¡Casi obtienes tu descuento!";
+            } else {
+                mensajeLavadas = "🎉 ¡Felicidades! Tienes 50% de descuento en tu siguiente lavada 🎉";
             }
 
             document.getElementById("recibo").innerHTML = `
@@ -150,6 +172,10 @@
                 <h3>Recuerda que nosotros nos preocupamos por tus prendas.</h3>
                 <p>Tu recibo del día de hoy es:</p>
                 <p><strong>Folio de recibo:</strong> <span class="folio">${folio}</span></p>
+                <p><strong>Total a pagar:</strong> <span class="total">$${total}</span></p>
+                <p><strong>6 stikers y tiene 50% de descuento:</strong></p>
+                <div class="lavadoras-contenedor">${lavadorasHTML}</div>
+                <p><strong></strong> ${mensajeLavadas}</p>
                 <p><strong>Cliente:</strong> ${cliente}</p>
                 <p><strong>Servicio:</strong> ${servicio}</p>
                 <p><strong>Kilos de ropa:</strong> ${kilos} kg</p>
@@ -158,7 +184,6 @@
                 <p>La Fecha y Hora en la que puedes pasar por tu ropa es:</p>
                 <p><strong>Fecha de entrega:</strong> ${fechaEntrega}</p>
                 <p><strong>Hora de entrega:</strong> ${horaEntrega} pm</p>
-                <p><strong>Total a pagar:</strong> <span class="total">$${total}</span></p>
             `;
             document.getElementById("recibo").classList.remove("hidden");
             document.getElementById("reciboForm").scrollIntoView({ behavior: 'smooth' });
