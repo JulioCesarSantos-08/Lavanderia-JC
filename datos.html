@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Datos de Recibos - Lavandería JC</title>
+  <link rel="icon" type="image/png" href="imagenes/favicon.png" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      background: url('imagenes/logo.jpg') no-repeat center center fixed;
+      background-size: cover;
+      color: white;
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    .contenedor-datos {
+      background: rgba(0, 0, 0, 0.8);
+      padding: 20px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 900px;
+      margin: 50px auto;
+    }
+
+    .recibo-item {
+      background: rgba(255, 255, 255, 0.95);
+      color: black;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .recibo-item button {
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .filtros {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .filtros select {
+      padding: 10px;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+
+    #total-ganancias {
+      text-align: center;
+      font-size: 20px;
+      margin-top: 20px;
+      font-weight: bold;
+    }
+
+    canvas {
+      background-color: white;
+      border-radius: 10px;
+      margin: 20px 0;
+    }
+
+    button.volver, button.ver-datos {
+      display: block;
+      margin: 10px auto;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button.volver:hover, button.ver-datos:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="contenedor-datos">
+    <h2>Recibos Guardados</h2>
+
+    <button class="ver-datos" onclick="mostrarRecibos()">Ver Datos</button>
+
+    <div class="filtros">
+      <label for="filtro">Filtrar por:</label>
+      <select id="filtro">
+        <option value="todos">Todos</option>
+        <option value="dia">Hoy</option>
+        <option value="semana">Esta Semana</option>
+        <option value="mes">Este Mes</option>
+      </select>
+    </div>
+
+    <div id="lista-recibos"></div>
+    <div id="total-ganancias">Total: $0</div>
+    <canvas id="graficaGanancias" width="400" height="200"></canvas>
+
+    <button class="volver" onclick="window.location.href='recibos.html'">Volver a Recibos</button>
+  </div>
+
+  <!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAPVBy2aOPgCMeEX45CjRDI4blJda2Bkpg",
+      authDomain: "lavanderiajc-4ce1a.firebaseapp.com",
+      databaseURL: "https://lavanderiajc-4ce1a-default-rtdb.firebaseio.com",
+      projectId: "lavanderiajc-4ce1a",
+      storageBucket: "lavanderiajc-4ce1a.appspot.com",
+      messagingSenderId: "734422532906",
+      appId: "1:734422532906:web:32e72d56815e531da39453"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const lista = document.getElementById("lista-recibos");
+    const filtro = document.getElementById("filtro");
+    const totalGanancias = document.getElementById("total-ganancias");
+    let chart;
+
+    function mostrarRecibos() {
+      db.ref("recibos").once("value", (snapshot) => {
+        lista.innerHTML = "";
+        const filtroValor = filtro.value;
+        let total = 0;
+        const gananciasPorDia = {};
+
+        if (snapshot.exists()) {
+          snapshot.forEach((child) => {
+            const recibo = child.val();
+            const clave = child.key;
+            const fechaIngreso = new Date(recibo.fechaIngreso);
+            const ahora = new Date();
+            let mostrar = false;
+
+            if (filtroValor === "todos") {
+              mostrar = true;
+            } else if (filtroValor === "dia") {
+              mostrar = fechaIngreso.toDateString() === ahora.toDateString();
+            } else if (filtroValor === "semana") {
+              const inicioSemana = new Date(ahora);
+              inicioSemana.setDate(ahora.getDate() - ahora.getDay());
+              mostrar = fechaIngreso >= inicioSemana && fechaIngreso <= ahora;
+            } else if (filtroValor === "mes") {
+              mostrar = (
+                fechaIngreso.getMonth() === ahora.getMonth() &&
+                fechaIngreso.getFullYear() === ahora.getFullYear()
+              );
+            }
+
+            if (mostrar) {
+              total += parseFloat(recibo.total);
+              const dia = recibo.fechaIngreso;
+              gananciasPorDia[dia] = (gananciasPorDia[dia] || 0) + parseFloat(recibo.total);
+
+              const div = document.createElement("div");
+              div.className = "recibo-item";
+              div.innerHTML = `
+                <strong>Folio:</strong> ${recibo.folio}<br>
+                <strong>Cliente:</strong> ${recibo.cliente}<br>
+                <strong>Servicio:</strong> ${recibo.servicio}<br>
+                <strong>Kilos:</strong> ${recibo.kilos} kg<br>
+                <strong>Total:</strong> $${recibo.total}<br>
+                <strong>Ingreso:</strong> ${recibo.fechaIngreso}<br>
+                <strong>Entrega:</strong> ${recibo.fechaEntrega} ${recibo.horaEntrega}<br>
+                <strong>Ropa:</strong> ${recibo.ropaEntregada}<br>
+                <strong>Lavadas acumuladas:</strong> ${recibo.lavadas}<br>
+                <button onclick="eliminarRecibo('${clave}')">Eliminar</button>
+              `;
+              lista.appendChild(div);
+            }
+          });
+
+          totalGanancias.textContent = `Total: $${total.toFixed(2)}`;
+          actualizarGrafica(gananciasPorDia);
+        } else {
+          lista.innerHTML = "<p>No hay recibos guardados aún.</p>";
+          totalGanancias.textContent = "Total: $0";
+          actualizarGrafica({});
+        }
+      });
+    }
+
+    function eliminarRecibo(id) {
+      if (confirm("¿Estás seguro de eliminar este recibo?")) {
+        db.ref("recibos/" + id).remove().then(mostrarRecibos);
+      }
+    }
+
+    function actualizarGrafica(data) {
+      const labels = Object.keys(data);
+      const valores = Object.values(data);
+
+      if (chart) chart.destroy();
+
+      const ctx = document.getElementById("graficaGanancias").getContext("2d");
+      chart = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: labels,
+          datasets: [{
+            label: "Ganancias por día ($)",
+            data: valores,
+            backgroundColor: "#007bff"
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            title: {
+              display: true,
+              text: "Ganancias en el período seleccionado"
+            }
+          },
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
+    }
+
+    filtro.addEventListener("change", mostrarRecibos);
+    window.onload = mostrarRecibos;
+  </script>
+</body>
+</html>

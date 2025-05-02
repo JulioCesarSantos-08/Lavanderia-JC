@@ -16,9 +16,7 @@
             background-size: cover;
             color: white;
             flex-direction: column;
-            transition: background 0.5s ease-in-out;
             overflow-y: auto;
-            height: auto;
         }
         .container {
             background: rgba(0, 0, 0, 0.7);
@@ -50,7 +48,6 @@
             color: black;
             padding: 15px;
             border-radius: 10px;
-            text-align: left;
             width: 90%;
             max-width: 400px;
         }
@@ -68,6 +65,54 @@
             margin-right: 5px;
         }
     </style>
+
+    <!-- Firebase SDK -->
+<!-- Firebase SDKs clásicas (versiones compatibles sin usar módulos ES6) -->
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+
+<script>
+  // Configura Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyAPVBy2aOPgCMeEX45CjRDI4blJda2Bkpg",
+    authDomain: "lavanderiajc-4ce1a.firebaseapp.com",
+    databaseURL: "https://lavanderiajc-4ce1a-default-rtdb.firebaseio.com/",
+    projectId: "lavanderiajc-4ce1a",
+    storageBucket: "lavanderiajc-4ce1a.appspot.com",
+    messagingSenderId: "734422532906",
+    appId: "1:734422532906:web:32e72d56815e531da39453"
+  };
+
+  // Inicializa Firebase
+  firebase.initializeApp(firebaseConfig);
+  const database = firebase.database();
+
+  // Función accesible globalmente
+  function enviarDatosAFirebase(cliente, folio, fechaIngreso, total, servicio, kilos, fechaEntrega, horaEntrega, ropaEntregada, lavadas) {
+    const reciboData = {
+      cliente,
+      folio,
+      fechaIngreso,
+      total,
+      servicio,
+      kilos,
+      fechaEntrega,
+      horaEntrega,
+      ropaEntregada,
+      lavadas
+    };
+  
+    const recibosRef = firebase.database().ref("recibos");
+    recibosRef.push(reciboData)
+      .then(() => {
+        console.log("Datos enviados correctamente.");
+      })
+      .catch((error) => {
+        console.error("Error al enviar datos:", error);
+      });
+  }
+</script>
+  
 </head>
 <body>
     <div class="container" id="loginForm">
@@ -76,7 +121,7 @@
         <input type="password" id="password">
         <button onclick="verificarPassword()">Ingresar</button>
     </div>
-    
+
     <div class="container hidden" id="reciboForm">
         <h3>Datos del Recibo</h3>
         <label>Nombre del Cliente:</label>
@@ -115,6 +160,7 @@
         
         <button onclick="generarRecibo()">Generar Recibo</button>
         <button onclick="window.location.href='index.html'">Regresar a Inicio</button>
+        <button onclick="window.location.href='datos.html'">Ver Datos</button>
     </div>
 
     <div id="recibo" class="hidden"></div>
@@ -148,6 +194,10 @@
             const fechaEntrega = formatDate(document.getElementById("fechaEntrega").value);
             const horaEntrega = document.getElementById("horaEntrega").value;
             const ropaEntregada = document.getElementById("ropaEntregada").value.trim();
+            // Agrega esto al final de la función generarRecibo()
+            enviarDatosAFirebase(cliente, folio, fechaIngreso, total, servicio, kilos, fechaEntrega, horaEntrega, ropaEntregada, lavadas);
+
+
 
             if (!folio || !cliente || !servicio || !kilos || isNaN(lavadas) || !fechaIngreso || !total || !fechaEntrega || !horaEntrega || !ropaEntregada) {
                 alert("Por favor, complete todos los campos.");
@@ -160,13 +210,13 @@
             }
 
             let mensajeLavadas = "";
-if (lavadas <= 3) {
-    mensajeLavadas = "Sigue acumulando lavadas";
-} else if (lavadas <= 5) {
-    mensajeLavadas = "¡Casi obtienes tu descuento!";
-} else if (lavadas >= 6) {
-    mensajeLavadas = "🎉 ¡Felicidades! Tienes 50% de descuento en tu siguiente lavada 🎉";
-}
+            if (lavadas <= 3) {
+                mensajeLavadas = "Sigue acumulando lavadas";
+            } else if (lavadas <= 5) {
+                mensajeLavadas = "¡Casi obtienes tu descuento!";
+            } else if (lavadas >= 6) {
+                mensajeLavadas = "🎉 ¡Felicidades! Tienes 50% de descuento en tu siguiente lavada 🎉";
+            }
 
             document.getElementById("recibo").innerHTML = `
                 <h2>Gracias por visitar Lavandería JC.</h2>
@@ -176,7 +226,7 @@ if (lavadas <= 3) {
                 <p><strong>Total a pagar:</strong> <span class="total">$${total}</span></p>
                 <p><strong>6 stikers y tiene 50% de descuento:</strong></p>
                 <div class="lavadoras-contenedor">${lavadorasHTML}</div>
-                <p><strong></strong> ${mensajeLavadas}</p>
+                <p><strong>${mensajeLavadas}</strong></p>
                 <p><strong>Cliente:</strong> ${cliente}</p>
                 <p><strong>Servicio:</strong> ${servicio}</p>
                 <p><strong>Kilos de ropa:</strong> ${kilos} kg</p>
