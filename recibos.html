@@ -67,52 +67,47 @@
     </style>
 
     <!-- Firebase SDK -->
-<!-- Firebase SDKs clásicas (versiones compatibles sin usar módulos ES6) -->
-<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
 
-<script>
-  // Configura Firebase
-  const firebaseConfig = {
-    apiKey: "AIzaSyAPVBy2aOPgCMeEX45CjRDI4blJda2Bkpg",
-    authDomain: "lavanderiajc-4ce1a.firebaseapp.com",
-    databaseURL: "https://lavanderiajc-4ce1a-default-rtdb.firebaseio.com/",
-    projectId: "lavanderiajc-4ce1a",
-    storageBucket: "lavanderiajc-4ce1a.appspot.com",
-    messagingSenderId: "734422532906",
-    appId: "1:734422532906:web:32e72d56815e531da39453"
-  };
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAPVBy2aOPgCMeEX45CjRDI4blJda2Bkpg",
+            authDomain: "lavanderiajc-4ce1a.firebaseapp.com",
+            databaseURL: "https://lavanderiajc-4ce1a-default-rtdb.firebaseio.com/",
+            projectId: "lavanderiajc-4ce1a",
+            storageBucket: "lavanderiajc-4ce1a.appspot.com",
+            messagingSenderId: "734422532906",
+            appId: "1:734422532906:web:32e72d56815e531da39453"
+        };
 
-  // Inicializa Firebase
-  firebase.initializeApp(firebaseConfig);
-  const database = firebase.database();
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
 
-  // Función accesible globalmente
-  function enviarDatosAFirebase(cliente, folio, fechaIngreso, total, servicio, kilos, fechaEntrega, horaEntrega, ropaEntregada, lavadas) {
-    const reciboData = {
-      cliente,
-      folio,
-      fechaIngreso,
-      total,
-      servicio,
-      kilos,
-      fechaEntrega,
-      horaEntrega,
-      ropaEntregada,
-      lavadas
-    };
-  
-    const recibosRef = firebase.database().ref("recibos");
-    recibosRef.push(reciboData)
-      .then(() => {
-        console.log("Datos enviados correctamente.");
-      })
-      .catch((error) => {
-        console.error("Error al enviar datos:", error);
-      });
-  }
-</script>
-  
+        function enviarDatosAFirebase(cliente, folio, fechaIngreso, total, servicio, kilos, fechaEntrega, horaEntrega, ropaEntregada, lavadas) {
+            const reciboData = {
+                cliente,
+                folio,
+                fechaIngreso,
+                total,
+                servicio,
+                kilos,
+                fechaEntrega,
+                horaEntrega,
+                ropaEntregada,
+                lavadas
+            };
+
+            const recibosRef = database.ref("recibos");
+            recibosRef.push(reciboData)
+                .then(() => {
+                    console.log("Datos enviados correctamente.");
+                })
+                .catch((error) => {
+                    console.error("Error al enviar datos:", error);
+                });
+        }
+    </script>
 </head>
 <body>
     <div class="container" id="loginForm">
@@ -183,26 +178,41 @@
             return `${day}-${month}-${year}`;
         }
 
+        function formatoHora(hora24) {
+            const [hora, minutos] = hora24.split(":");
+            const h = parseInt(hora);
+            const ampm = h >= 12 ? "PM" : "AM";
+            const hora12 = h % 12 || 12;
+            return `${hora12}:${minutos} ${ampm}`;
+        }
+
         function generarRecibo() {
-            const cliente = document.getElementById("cliente").value;
+            const cliente = document.getElementById("cliente").value.trim();
             const servicio = document.getElementById("servicio").value;
             const kilos = document.getElementById("kilos").value;
             const lavadas = parseInt(document.getElementById("lavadas").value);
-            const folio = document.getElementById("folio").value;
-            const fechaIngreso = formatDate(document.getElementById("fechaIngreso").value);
+            const folio = document.getElementById("folio").value.trim();
+            const fechaIngresoRaw = document.getElementById("fechaIngreso").value;
             const total = document.getElementById("total").value;
-            const fechaEntrega = formatDate(document.getElementById("fechaEntrega").value);
-            const horaEntrega = document.getElementById("horaEntrega").value;
+            const fechaEntregaRaw = document.getElementById("fechaEntrega").value;
+            const horaEntregaRaw = document.getElementById("horaEntrega").value;
             const ropaEntregada = document.getElementById("ropaEntregada").value.trim();
-            // Agrega esto al final de la función generarRecibo()
-            enviarDatosAFirebase(cliente, folio, fechaIngreso, total, servicio, kilos, fechaEntrega, horaEntrega, ropaEntregada, lavadas);
 
-
-
-            if (!folio || !cliente || !servicio || !kilos || isNaN(lavadas) || !fechaIngreso || !total || !fechaEntrega || !horaEntrega || !ropaEntregada) {
+            if (!folio || !cliente || !servicio || !kilos || isNaN(lavadas) || !fechaIngresoRaw || !total || !fechaEntregaRaw || !horaEntregaRaw || !ropaEntregada) {
                 alert("Por favor, complete todos los campos.");
                 return;
             }
+
+            if (lavadas < 0 || lavadas > 7) {
+                alert("El número de lavadas debe estar entre 0 y 7.");
+                return;
+            }
+
+            const fechaIngreso = formatDate(fechaIngresoRaw);
+            const fechaEntrega = formatDate(fechaEntregaRaw);
+            const horaEntrega = formatoHora(horaEntregaRaw);
+
+            enviarDatosAFirebase(cliente, folio, fechaIngreso, total, servicio, kilos, fechaEntrega, horaEntrega, ropaEntregada, lavadas);
 
             let lavadorasHTML = '';
             for (let i = 0; i < lavadas; i++) {
@@ -234,10 +244,15 @@
                 <p><strong>Fecha de ingreso:</strong> ${fechaIngreso}</p>
                 <p>La Fecha y Hora en la que puedes pasar por tu ropa es:</p>
                 <p><strong>Fecha de entrega:</strong> ${fechaEntrega}</p>
-                <p><strong>Hora de entrega:</strong> ${horaEntrega} pm</p>
+                <p><strong>Hora de entrega:</strong> ${horaEntrega}</p>
             `;
+
             document.getElementById("recibo").classList.remove("hidden");
             document.getElementById("reciboForm").scrollIntoView({ behavior: 'smooth' });
+
+            // Limpia el formulario
+            document.querySelectorAll('#reciboForm input, #reciboForm textarea').forEach(input => input.value = '');
+            document.getElementById("servicio").selectedIndex = 0;
         }
     </script>
 </body>
