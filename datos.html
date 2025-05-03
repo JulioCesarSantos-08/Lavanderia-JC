@@ -107,13 +107,16 @@
     <div id="total-ganancias">Total: $0</div>
     <canvas id="graficaGanancias" width="400" height="200"></canvas>
 
+    <button class="ver-datos" onclick="exportarAExcel()">Descargar Excel</button>
     <button class="volver" onclick="window.location.href='recibos.html'">Volver a Recibos</button>
   </div>
 
   <!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
 
+  <!-- SheetJS para exportar a Excel -->
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
   <script>
     const firebaseConfig = {
@@ -231,6 +234,35 @@
           scales: {
             y: { beginAtZero: true }
           }
+        }
+      });
+    }
+
+    function exportarAExcel() {
+      db.ref("recibos").once("value", (snapshot) => {
+        const datos = [];
+        if (snapshot.exists()) {
+          snapshot.forEach((child) => {
+            const recibo = child.val();
+            datos.push({
+              Folio: recibo.folio,
+              Cliente: recibo.cliente,
+              Servicio: recibo.servicio,
+              Kilos: recibo.kilos,
+              Total: recibo.total,
+              Ingreso: recibo.fechaIngreso,
+              Entrega: recibo.fechaEntrega + ' ' + recibo.horaEntrega,
+              Ropa: recibo.ropaEntregada,
+              "Lavadas acumuladas": recibo.lavadas
+            });
+          });
+
+          const ws = XLSX.utils.json_to_sheet(datos);
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, "Recibos");
+          XLSX.writeFile(wb, "recibos_lavanderia.xlsx");
+        } else {
+          alert("No hay datos para exportar.");
         }
       });
     }

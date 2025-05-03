@@ -121,38 +121,38 @@
         <h3>Datos del Recibo</h3>
         <label>Nombre del Cliente:</label>
         <input type="text" id="cliente" required>
-        
+
         <label>Servicio:</label>
         <select id="servicio">
             <option value="Básico">Básico</option>
             <option value="Premium">Premium</option>
             <option value="Express">Express</option>
         </select>
-        
+
         <label>Kilos de ropa:</label>
         <input type="number" id="kilos" min="0" required>
 
         <label>Número de lavadas acumuladas:</label>
         <input type="number" id="lavadas" min="0" max="7" required>
-        
+
         <label>Folio de recibo:</label>
         <input type="text" id="folio" required>
-        
+
         <label>Fecha de ingreso:</label>
         <input type="date" id="fechaIngreso" required>
-        
+
         <label>Total a pagar:</label>
         <input type="number" id="total" min="0" required>
-        
+
         <label>Fecha de entrega:</label>
         <input type="date" id="fechaEntrega" required>
-        
+
         <label>Hora de entrega:</label>
         <input type="time" id="horaEntrega" required>
-        
+
         <label>Ropa entregada:</label>
         <textarea id="ropaEntregada" rows="4" placeholder="Ingresa aquí la descripción de la ropa entregada"></textarea>
-        
+
         <button onclick="generarRecibo()">Generar Recibo</button>
         <button onclick="window.location.href='index.html'">Regresar a Inicio</button>
         <button onclick="window.location.href='datos.html'">Ver Datos</button>
@@ -175,7 +175,7 @@
 
         function formatDate(dateString) {
             const [year, month, day] = dateString.split("-");
-            return `${day}-${month}-${year}`;
+            return `${year}/${month}/${day}`;
         }
 
         function formatoHora(hora24) {
@@ -184,6 +184,11 @@
             const ampm = h >= 12 ? "PM" : "AM";
             const hora12 = h % 12 || 12;
             return `${hora12}:${minutos} ${ampm}`;
+        }
+
+        function mostrarFechaFormateada(input) {
+            // Ya no hace nada, pero evita errores en consola
+            console.log("Fecha seleccionada:", input.value);
         }
 
         function generarRecibo() {
