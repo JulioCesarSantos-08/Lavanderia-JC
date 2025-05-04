@@ -186,11 +186,6 @@
             return `${hora12}:${minutos} ${ampm}`;
         }
 
-        function mostrarFechaFormateada(input) {
-            // Ya no hace nada, pero evita errores en consola
-            console.log("Fecha seleccionada:", input.value);
-        }
-
         function generarRecibo() {
             const cliente = document.getElementById("cliente").value.trim();
             const servicio = document.getElementById("servicio").value;
@@ -255,9 +250,7 @@
             document.getElementById("recibo").classList.remove("hidden");
             document.getElementById("reciboForm").scrollIntoView({ behavior: 'smooth' });
 
-            // Limpia el formulario
-            document.querySelectorAll('#reciboForm input, #reciboForm textarea').forEach(input => input.value = '');
-            document.getElementById("servicio").selectedIndex = 0;
+            // Ya no se limpian los campos aquí
         }
     </script>
 </body>
