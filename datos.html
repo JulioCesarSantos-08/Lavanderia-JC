@@ -94,13 +94,18 @@
     <h2>Recibos Guardados</h2>
 
     <div class="filtros">
-      <label for="filtro">Filtrar por:</label>
-      <select id="filtro">
-        <option value="todos">Todos</option>
-        <option value="dia">Hoy</option>
-        <option value="semana">Esta Semana</option>
-        <option value="mes">Este Mes</option>
-      </select>
+      <label>Desde: <input type="date" id="filtroDesde"></label>
+      <label>Hasta: <input type="date" id="filtroHasta"></label>
+    <button onclick="mostrarRecibos()">Aplicar Filtro</button>
+
+    </div>    
+
+    <div class="gasto-form">
+      <h3>Registrar Gasto</h3>
+      <input type="date" id="fechaGasto" required />
+      <input type="text" id="descripcionGasto" placeholder="Descripción" required />
+      <input type="number" id="montoGasto" placeholder="Monto ($)" required />
+      <button onclick="registrarGasto()">Agregar Gasto</button>
     </div>
 
     <div id="lista-recibos"></div>
@@ -128,98 +133,120 @@
       messagingSenderId: "734422532906",
       appId: "1:734422532906:web:32e72d56815e531da39453"
     };
-
+  
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const lista = document.getElementById("lista-recibos");
-    const filtro = document.getElementById("filtro");
     const totalGanancias = document.getElementById("total-ganancias");
     let chart;
-
+  
     function mostrarRecibos() {
+      const desde = document.getElementById("filtroDesde").value;
+      const hasta = document.getElementById("filtroHasta").value;
+  
       db.ref("recibos").once("value", (snapshot) => {
-        lista.innerHTML = "";
-        const filtroValor = filtro.value;
-        let total = 0;
-        const gananciasPorDia = {};
-
-        if (snapshot.exists()) {
-          snapshot.forEach((child) => {
-            const recibo = child.val();
-            const clave = child.key;
-            const fechaIngreso = new Date(recibo.fechaIngreso);
-            const ahora = new Date();
-            let mostrar = false;
-
-            if (filtroValor === "todos") {
-              mostrar = true;
-            } else if (filtroValor === "dia") {
-              mostrar = fechaIngreso.toDateString() === ahora.toDateString();
-            } else if (filtroValor === "semana") {
-              const inicioSemana = new Date(ahora);
-              inicioSemana.setDate(ahora.getDate() - ahora.getDay());
-              mostrar = fechaIngreso >= inicioSemana && fechaIngreso <= ahora;
-            } else if (filtroValor === "mes") {
-              mostrar = (
-                fechaIngreso.getMonth() === ahora.getMonth() &&
-                fechaIngreso.getFullYear() === ahora.getFullYear()
-              );
-            }
-
-            if (mostrar) {
-              total += parseFloat(recibo.total);
-              const dia = recibo.fechaIngreso;
-              gananciasPorDia[dia] = (gananciasPorDia[dia] || 0) + parseFloat(recibo.total);
-
-              const div = document.createElement("div");
-              div.className = "recibo-item";
-              div.innerHTML = `
-                <strong>Folio:</strong> ${recibo.folio}<br>
-                <strong>Cliente:</strong> ${recibo.cliente}<br>
-                <strong>Servicio:</strong> ${recibo.servicio}<br>
-                <strong>Kilos:</strong> ${recibo.kilos} kg<br>
-                <strong>Total:</strong> $${recibo.total}<br>
-                <strong>Ingreso:</strong> ${recibo.fechaIngreso}<br>
-                <strong>Entrega:</strong> ${recibo.fechaEntrega} ${recibo.horaEntrega}<br>
-                <strong>Ropa:</strong> ${recibo.ropaEntregada}<br>
-                <strong>Lavadas acumuladas:</strong> ${recibo.lavadas}<br>
-                <button onclick="eliminarRecibo('${clave}')">Eliminar</button>
-              `;
-              lista.appendChild(div);
-            }
+        db.ref("gastos").once("value", (gastosSnap) => {
+          lista.innerHTML = "";
+          let totalIngresos = 0;
+          let totalGastos = 0;
+          const gananciasPorDia = {};
+          const gastosPorDia = {};
+  
+          const desdeFecha = desde ? new Date(desde + "T00:00:00") : null;
+          const hastaFecha = hasta ? new Date(hasta + "T23:59:59") : null;
+  
+          // Recibos
+          if (snapshot.exists()) {
+            snapshot.forEach((child) => {
+              const recibo = child.val();
+              const clave = child.key;
+              const fechaIngreso = new Date(recibo.fechaIngreso + "T00:00:00");
+  
+              const mostrar = (!desdeFecha || fechaIngreso >= desdeFecha) && (!hastaFecha || fechaIngreso <= hastaFecha);
+  
+              if (mostrar) {
+                totalIngresos += parseFloat(recibo.total);
+                const dia = recibo.fechaIngreso;
+                gananciasPorDia[dia] = (gananciasPorDia[dia] || 0) + parseFloat(recibo.total);
+  
+                const div = document.createElement("div");
+                div.className = "recibo-item";
+                div.innerHTML = `
+                  <strong>Folio:</strong> ${recibo.folio}<br>
+                  <strong>Cliente:</strong> ${recibo.cliente}<br>
+                  <strong>Servicio:</strong> ${recibo.servicio}<br>
+                  <strong>Kilos:</strong> ${recibo.kilos} kg<br>
+                  <strong>Total:</strong> $${recibo.total}<br>
+                  <strong>Ingreso:</strong> ${recibo.fechaIngreso}<br>
+                  <strong>Entrega:</strong> ${recibo.fechaEntrega} ${recibo.horaEntrega}<br>
+                  <strong>Ropa:</strong> ${recibo.ropaEntregada}<br>
+                  <strong>Lavadas acumuladas:</strong> ${recibo.lavadas}<br>
+                  <button onclick="editarRecibo('${clave}')">Editar</button>
+                  <button onclick="eliminarRecibo('${clave}')">Eliminar</button>
+                `;
+                lista.appendChild(div);
+              }
+            });
+          }
+  
+          // Gastos
+          if (gastosSnap.exists()) {
+            gastosSnap.forEach((g) => {
+              const gasto = g.val();
+              const claveGasto = g.key;
+              const fechaGasto = new Date(gasto.fecha + "T00:00:00");
+  
+              const mostrarGasto = (!desdeFecha || fechaGasto >= desdeFecha) && (!hastaFecha || fechaGasto <= hastaFecha);
+  
+              if (mostrarGasto) {
+                totalGastos += parseFloat(gasto.monto);
+                const dia = gasto.fecha;
+                gastosPorDia[dia] = (gastosPorDia[dia] || 0) + parseFloat(gasto.monto);
+  
+                const div = document.createElement("div");
+                div.className = "recibo-item";
+                div.style.backgroundColor = "#fff0f0";
+                div.innerHTML = `
+                  <strong>GASTO:</strong><br>
+                  <strong>Descripción:</strong> ${gasto.descripcion}<br>
+                  <strong>Monto:</strong> $${gasto.monto}<br>
+                  <strong>Fecha:</strong> ${gasto.fecha}<br>
+                  <button onclick="editarGasto('${claveGasto}')">Editar</button>
+                  <button onclick="eliminarGasto('${claveGasto}')">Eliminar</button>
+                `;
+                lista.appendChild(div);
+              }
+            });
+          }
+  
+          totalGanancias.textContent = `Ganancia Neta: $${(totalIngresos - totalGastos).toFixed(2)}`;
+  
+          const fechasUnicas = [...new Set([...Object.keys(gananciasPorDia), ...Object.keys(gastosPorDia)])].sort();
+          const datosGraficos = {};
+          fechasUnicas.forEach((fecha) => {
+            const ingreso = gananciasPorDia[fecha] || 0;
+            const gasto = gastosPorDia[fecha] || 0;
+            datosGraficos[fecha] = ingreso - gasto;
           });
-
-          totalGanancias.textContent = `Total: $${total.toFixed(2)}`;
-          actualizarGrafica(gananciasPorDia);
-        } else {
-          lista.innerHTML = "<p>No hay recibos guardados aún.</p>";
-          totalGanancias.textContent = "Total: $0";
-          actualizarGrafica({});
-        }
+  
+          actualizarGrafica(datosGraficos);
+        });
       });
     }
-
-    function eliminarRecibo(id) {
-      if (confirm("¿Estás seguro de eliminar este recibo?")) {
-        db.ref("recibos/" + id).remove().then(mostrarRecibos);
-      }
-    }
-
-    function actualizarGrafica(data) {
-      const labels = Object.keys(data);
-      const valores = Object.values(data);
-
-      if (chart) chart.destroy();
-
+  
+    function actualizarGrafica(datos) {
       const ctx = document.getElementById("graficaGanancias").getContext("2d");
+  
+      if (chart) chart.destroy();
+  
       chart = new Chart(ctx, {
         type: "bar",
         data: {
-          labels: labels,
+          labels: Object.keys(datos),
           datasets: [{
-            label: "Ganancias por día ($)",
-            data: valores,
-            backgroundColor: "#007bff"
+            label: "Ganancia Neta",
+            data: Object.values(datos),
+            backgroundColor: "#4caf50"
           }]
         },
         options: {
@@ -228,23 +255,77 @@
             legend: { display: false },
             title: {
               display: true,
-              text: "Ganancias en el período seleccionado"
+              text: "Ganancias Netas por Día"
             }
-          },
-          scales: {
-            y: { beginAtZero: true }
           }
         }
       });
     }
-
+  
+    function registrarGasto() {
+      const fecha = document.getElementById("fechaGasto").value;
+      const descripcion = document.getElementById("descripcionGasto").value;
+      const monto = parseFloat(document.getElementById("montoGasto").value);
+  
+      if (!fecha || !descripcion || isNaN(monto)) {
+        alert("Todos los campos del gasto son obligatorios.");
+        return;
+      }
+  
+      const nuevoGasto = { fecha, descripcion, monto };
+      db.ref("gastos").push(nuevoGasto).then(() => {
+        alert("Gasto registrado correctamente.");
+        mostrarRecibos();
+      });
+    }
+  
+    function editarGasto(clave) {
+      const nuevaDescripcion = prompt("Nueva descripción:");
+      const nuevoMonto = prompt("Nuevo monto:");
+      if (nuevaDescripcion && !isNaN(parseFloat(nuevoMonto))) {
+        db.ref("gastos/" + clave).update({
+          descripcion: nuevaDescripcion,
+          monto: parseFloat(nuevoMonto)
+        }).then(() => {
+          alert("Gasto actualizado");
+          mostrarRecibos();
+        });
+      }
+    }
+  
+    function editarRecibo(clave) {
+      const nuevoTotal = prompt("Nuevo total:");
+      const nuevaFecha = prompt("Nueva fecha de ingreso (YYYY/MM/DD):");
+      if (!isNaN(parseFloat(nuevoTotal)) && nuevaFecha) {
+        db.ref("recibos/" + clave).update({
+          total: parseFloat(nuevoTotal),
+          fechaIngreso: nuevaFecha
+        }).then(() => {
+          alert("Recibo actualizado");
+          mostrarRecibos();
+        });
+      }
+    }
+  
+    function eliminarRecibo(clave) {
+      if (confirm("¿Eliminar este recibo?")) {
+        db.ref("recibos/" + clave).remove().then(mostrarRecibos);
+      }
+    }
+  
+    function eliminarGasto(clave) {
+      if (confirm("¿Eliminar este gasto?")) {
+        db.ref("gastos/" + clave).remove().then(mostrarRecibos);
+      }
+    }
+  
     function exportarAExcel() {
       db.ref("recibos").once("value", (snapshot) => {
-        const datos = [];
+        const datosRecibos = [];
         if (snapshot.exists()) {
           snapshot.forEach((child) => {
             const recibo = child.val();
-            datos.push({
+            datosRecibos.push({
               Folio: recibo.folio,
               Cliente: recibo.cliente,
               Servicio: recibo.servicio,
@@ -256,19 +337,40 @@
               "Lavadas acumuladas": recibo.lavadas
             });
           });
-
-          const ws = XLSX.utils.json_to_sheet(datos);
+  
+          const wsRecibos = XLSX.utils.json_to_sheet(datosRecibos);
           const wb = XLSX.utils.book_new();
-          XLSX.utils.book_append_sheet(wb, ws, "Recibos");
-          XLSX.writeFile(wb, "recibos_lavanderia.xlsx");
+          XLSX.utils.book_append_sheet(wb, wsRecibos, "Recibos");
+  
+          db.ref("gastos").once("value", (gastosSnap) => {
+            const datosGastos = [];
+            if (gastosSnap.exists()) {
+              gastosSnap.forEach((g) => {
+                const gasto = g.val();
+                datosGastos.push({
+                  Descripción: gasto.descripcion,
+                  Monto: gasto.monto,
+                  Fecha: gasto.fecha
+                });
+              });
+  
+              const wsGastos = XLSX.utils.json_to_sheet(datosGastos);
+              XLSX.utils.book_append_sheet(wb, wsGastos, "Gastos");
+            }
+  
+            XLSX.writeFile(wb, "recibos_y_gastos.xlsx");
+          });
         } else {
           alert("No hay datos para exportar.");
         }
       });
     }
-
-    filtro.addEventListener("change", mostrarRecibos);
+  
+    document.getElementById("filtroDesde").addEventListener("change", mostrarRecibos);
+    document.getElementById("filtroHasta").addEventListener("change", mostrarRecibos);
+  
     window.onload = mostrarRecibos;
   </script>
+  
 </body>
 </html>
