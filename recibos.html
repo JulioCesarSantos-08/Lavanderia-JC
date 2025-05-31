@@ -67,47 +67,48 @@
     </style>
 
     <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
 
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyAPVBy2aOPgCMeEX45CjRDI4blJda2Bkpg",
-            authDomain: "lavanderiajc-4ce1a.firebaseapp.com",
-            databaseURL: "https://lavanderiajc-4ce1a-default-rtdb.firebaseio.com/",
-            projectId: "lavanderiajc-4ce1a",
-            storageBucket: "lavanderiajc-4ce1a.appspot.com",
-            messagingSenderId: "734422532906",
-            appId: "1:734422532906:web:32e72d56815e531da39453"
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyCwBZMUnQ6rH3APMo4kXDiDvg_u7Zsud9w",
+        authDomain: "lavanderia-nueva.firebaseapp.com",
+        databaseURL: "https://lavanderia-nueva-default-rtdb.firebaseio.com",
+        projectId: "lavanderia-nueva",
+        storageBucket: "lavanderia-nueva.firebasestorage.app",
+        messagingSenderId: "1074532951",
+        appId: "1:1074532951:web:311703f9f5441d11240912"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    function enviarDatosAFirebase(cliente, folio, fechaIngreso, total, servicio, kilos, fechaEntrega, horaEntrega, ropaEntregada, lavadas) {
+        const reciboData = {
+            cliente,
+            folio,
+            fechaIngreso,
+            total,
+            servicio,
+            kilos,
+            fechaEntrega,
+            horaEntrega,
+            ropaEntregada,
+            lavadas
         };
 
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+        const recibosRef = database.ref("recibos");
+        recibosRef.push(reciboData)
+            .then(() => {
+                console.log("Datos enviados correctamente.");
+            })
+            .catch((error) => {
+                console.error("Error al enviar datos:", error);
+            });
+    }
+</script>
 
-        function enviarDatosAFirebase(cliente, folio, fechaIngreso, total, servicio, kilos, fechaEntrega, horaEntrega, ropaEntregada, lavadas) {
-            const reciboData = {
-                cliente,
-                folio,
-                fechaIngreso,
-                total,
-                servicio,
-                kilos,
-                fechaEntrega,
-                horaEntrega,
-                ropaEntregada,
-                lavadas
-            };
-
-            const recibosRef = database.ref("recibos");
-            recibosRef.push(reciboData)
-                .then(() => {
-                    console.log("Datos enviados correctamente.");
-                })
-                .catch((error) => {
-                    console.error("Error al enviar datos:", error);
-                });
-        }
-    </script>
 </head>
 <body>
     <div class="container" id="loginForm">
