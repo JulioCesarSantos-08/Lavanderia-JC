@@ -206,14 +206,13 @@ function mostrarRecibos() {
           ${
             recibo.estado !== "pagado" && recibo.estado !== "pedido listo"
               ? `<button onclick="marcarComoPagado('${clave}')">Sin pagar</button>`
-              : `<button style="background-color: green; color: white;" onclick="marcarComoPendiente('${clave}')">Ya pagado</button>
+              : `<button style="background-color: green; color: white;" onclick="marcarComoPendiente('${clave}')">Pagado</button>
 `
           }
         `;
         lista.appendChild(div);
       });
 
-      // Mostrar gastos (solo una vez)
       if (gastosSnap.exists()) {
         gastosSnap.forEach((g) => {
           const gasto = g.val();
