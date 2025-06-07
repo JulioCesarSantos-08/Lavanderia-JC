@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -163,6 +162,7 @@ function mostrarRecibos() {
           const recibo = child.val();
           const clave = child.key;
           const fechaIngreso = new Date(recibo.fechaIngreso + "T00:00:00");
+
           const mostrar = (!desdeFecha || fechaIngreso >= desdeFecha) && (!hastaFecha || fechaIngreso <= hastaFecha);
 
           if (mostrar) {
@@ -317,41 +317,18 @@ function editarGasto(clave) {
 }
 
 function editarRecibo(clave) {
-  const modal = document.getElementById("modalEditarRecibo");
-  const inputTotal = document.getElementById("modalNuevoTotal");
-  const inputFecha = document.getElementById("modalNuevaFecha");
+  const nuevoTotal = prompt("Nuevo total:");
+  const nuevaFecha = prompt("Nueva fecha de ingreso (YYYY-MM-DD):");
 
-  // Obtener datos actuales del recibo
-  db.ref("recibos/" + clave).once("value").then((snapshot) => {
-    const recibo = snapshot.val();
-    inputTotal.value = recibo.total;
-    inputFecha.value = recibo.fechaIngreso;
-    modal.style.display = "block";
-
-    // Guardar al hacer clic en "Guardar cambios"
-    const guardarBtn = document.getElementById("btnGuardarCambios");
-    guardarBtn.onclick = function () {
-      const nuevoTotal = parseFloat(inputTotal.value);
-      const nuevaFecha = inputFecha.value;
-
-      if (!isNaN(nuevoTotal) && nuevaFecha) {
-        db.ref("recibos/" + clave).update({
-          total: nuevoTotal,
-          fechaIngreso: nuevaFecha
-        }).then(() => {
-          alert("Recibo actualizado.");
-          modal.style.display = "none";
-          mostrarRecibos();
-        });
-      } else {
-        alert("Por favor, completa todos los campos correctamente.");
-      }
-    };
-  });
-}
-
-function cerrarModalEdicion() {
-  document.getElementById("modalEditarRecibo").style.display = "none";
+  if (!isNaN(parseFloat(nuevoTotal)) && nuevaFecha) {
+    db.ref("recibos/" + clave).update({
+      total: parseFloat(nuevoTotal),
+      fechaIngreso: nuevaFecha
+    }).then(() => {
+      alert("Recibo actualizado");
+      mostrarRecibos();
+    });
+  }
 }
 
 function eliminarRecibo(clave) {
@@ -433,17 +410,6 @@ document.getElementById("filtroHasta").addEventListener("change", mostrarRecibos
 
 window.onload = mostrarRecibos;
 </script>
-<div id="modalEditarRecibo" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(0,0,0,0.5); z-index:1000;">
-  <div style="background:#fff; padding:20px; max-width:400px; margin:100px auto; border-radius:8px;">
-    <h3>Editar Recibo</h3>
-    <label>Total:</label><br>
-    <input type="number" id="modalNuevoTotal" style="width:100%;"><br><br>
-    <label>Fecha de ingreso:</label><br>
-    <input type="date" id="modalNuevaFecha" style="width:100%;"><br><br>
-    <button id="btnGuardarCambios">Guardar cambios</button>
-    <button onclick="document.getElementById('modalEditarRecibo').style.display='none'">Cancelar</button>
-  </div>
-</div>
-
+  
 </body>
 </html>
