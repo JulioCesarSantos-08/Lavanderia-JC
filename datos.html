@@ -162,8 +162,8 @@ function mostrarRecibos() {
         snapshot.forEach((child) => {
           const recibo = child.val();
           const clave = child.key;
-          const fechaEntrega = new Date(recibo.fechaEntrega + "T00:00:00");
-          const mostrar = (!desdeFecha || fechaEntrega >= desdeFecha) && (!hastaFecha || fechaEntrega <= hastaFecha);
+          const fechaIngreso = new Date(recibo.fechaIngreso + "T00:00:00");
+          const mostrar = (!desdeFecha || fechaIngreso >= desdeFecha) && (!hastaFecha || fechaIngreso <= hastaFecha);
 
           if (mostrar) {
             recibosArray.push({ clave, recibo });
@@ -183,9 +183,8 @@ function mostrarRecibos() {
         const estaPagado = recibo.estado === "pagado";
         if (estaPagado) {
           totalIngresos += parseFloat(recibo.total);
-          const dia = recibo.fechaEntrega;
+          const dia = recibo.fechaIngreso;
           gananciasPorDia[dia] = (gananciasPorDia[dia] || 0) + parseFloat(recibo.total);
-
         }
 
         const div = document.createElement("div");
@@ -322,12 +321,14 @@ function editarRecibo(clave) {
   const inputTotal = document.getElementById("modalNuevoTotal");
   const inputFecha = document.getElementById("modalNuevaFecha");
 
+  // Obtener datos actuales del recibo
   db.ref("recibos/" + clave).once("value").then((snapshot) => {
     const recibo = snapshot.val();
     inputTotal.value = recibo.total;
-    inputFecha.value = recibo.fechaEntrega;
-    modal.style.display = "flex";
+    inputFecha.value = recibo.fechaIngreso;
+    modal.style.display = "block";
 
+    // Guardar al hacer clic en "Guardar cambios"
     const guardarBtn = document.getElementById("btnGuardarCambios");
     guardarBtn.onclick = function () {
       const nuevoTotal = parseFloat(inputTotal.value);
@@ -336,7 +337,7 @@ function editarRecibo(clave) {
       if (!isNaN(nuevoTotal) && nuevaFecha) {
         db.ref("recibos/" + clave).update({
           total: nuevoTotal,
-          fechaEntrega: nuevaFecha
+          fechaIngreso: nuevaFecha
         }).then(() => {
           alert("Recibo actualizado.");
           modal.style.display = "none";
@@ -432,18 +433,15 @@ document.getElementById("filtroHasta").addEventListener("change", mostrarRecibos
 
 window.onload = mostrarRecibos;
 </script>
-<div id="modalEditarRecibo" class="modal" style="display: none; position: fixed; top: 0; left: 0; 
-  width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); justify-content: center; align-items: center;">
-  <div class="modal-contenido" style="background: white; color: black; padding: 20px; border-radius: 10px; width: 300px;">
+<div id="modalEditarRecibo" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(0,0,0,0.5); z-index:1000;">
+  <div style="background:#fff; padding:20px; max-width:400px; margin:100px auto; border-radius:8px;">
     <h3>Editar Recibo</h3>
-    <label for="modalNuevoTotal">Total:</label>
-    <input type="number" id="modalNuevoTotal" class="modal-input" style="width: 100%; margin-bottom: 10px;" /><br>
-
-    <label for="modalNuevaFecha">Fecha de entrega:</label>
-    <input type="date" id="modalNuevaFecha" class="modal-input" style="width: 100%; margin-bottom: 10px;" /><br>
-
-    <button id="btnGuardarCambios" style="margin-right: 10px;">Guardar</button>
-    <button onclick="cerrarModalEdicion()">Cancelar</button>
+    <label>Total:</label><br>
+    <input type="number" id="modalNuevoTotal" style="width:100%;"><br><br>
+    <label>Fecha de ingreso:</label><br>
+    <input type="date" id="modalNuevaFecha" style="width:100%;"><br><br>
+    <button id="btnGuardarCambios">Guardar cambios</button>
+    <button onclick="document.getElementById('modalEditarRecibo').style.display='none'">Cancelar</button>
   </div>
 </div>
 
