@@ -1,30 +1,49 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <link rel="icon" type="image/png" href="imagenes/favicon.png">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="imagenes/favicon.png" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Crear Recibos - Lavandería</title>
     <style>
         body {
             margin: 0;
             padding: 0;
-            display: flex;
+            display: none;
             justify-content: center;
             align-items: center;
-            background: url('imagenes/Inagura2.jpg') no-repeat center center fixed;
-            background-size: cover;
+            background: url('imagenes/logo.jpg') repeat;
+            background-size: cover, 150px 150px;
+            background-position: center center, top left;
+            background-attachment: fixed, fixed;
             color: white;
             flex-direction: column;
             overflow-y: auto;
+            font-family: Arial, sans-serif;
+            position: relative;
         }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: url('imagenes/logo.png') repeat;
+            background-size: 150px 150px;
+            opacity: 0.1;
+            pointer-events: none;
+            z-index: 0;
+        }
+
         .container {
             background: rgba(0, 0, 0, 0.7);
             padding: 20px;
             border-radius: 10px;
             width: 90%;
             max-width: 400px;
+            position: relative;
+            z-index: 1;
         }
+
         input, select, button, textarea {
             padding: 10px;
             font-size: 16px;
@@ -33,32 +52,45 @@
             width: 100%;
             margin: 10px 0;
             resize: none;
+            box-sizing: border-box;
         }
+
         button {
             background-color: #007bff;
             color: white;
             cursor: pointer;
+            transition: background-color 0.3s ease;
         }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
         .hidden {
             display: none;
         }
+
         #recibo {
             margin-top: 20px;
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.9);
             color: black;
             padding: 15px;
             border-radius: 10px;
             width: 90%;
             max-width: 400px;
+            box-sizing: border-box;
         }
+
         .folio {
             color: red;
             font-weight: bold;
             font-size: 1.5em;
         }
+
         .total {
             font-weight: bold;
         }
+
         .lavadoras-contenedor img {
             width: 30px;
             height: auto;
@@ -66,7 +98,6 @@
         }
     </style>
 
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
 
@@ -84,7 +115,17 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        function enviarDatosAFirebase(cliente, folio, fechaIngreso, total, servicio, kilos, fechaEntrega, horaEntrega, ropaEntregada, lavadas, estado) {
+        window.onload = function () {
+            const clave = prompt("Apartado solo para administradores, ingresa contraseña:");
+            if (clave === "costa2025") {
+                document.body.style.display = "flex";
+            } else {
+                alert("Contraseña incorrecta. No se puede acceder.");
+                window.location.href = "index.html";
+            }
+        };
+
+        function enviarDatosAFirebase(cliente, folio, fechaIngreso, total, servicio, kilos, fechaEntrega, horaEntrega, ropaEntregada, lavadas, estado, metodoPago) {
             const reciboData = {
                 cliente,
                 folio,
@@ -96,88 +137,14 @@
                 horaEntrega,
                 ropaEntregada,
                 lavadas,
-                estado
+                estado,
+                metodoPago
             };
 
             const recibosRef = database.ref("recibos");
             recibosRef.push(reciboData)
-                .then(() => {
-                    console.log("Datos enviados correctamente.");
-                })
-                .catch((error) => {
-                    console.error("Error al enviar datos:", error);
-                });
-        }
-    </script>
-</head>
-<body>
-    <div class="container" id="loginForm">
-        <h2>Crear Recibos</h2>
-        <label>Ingrese la contraseña:</label>
-        <input type="password" id="password">
-        <button onclick="verificarPassword()">Ingresar</button>
-    </div>
-
-    <div class="container hidden" id="reciboForm">
-        <h3>Datos del Recibo</h3>
-        <label>Nombre del Cliente:</label>
-        <input type="text" id="cliente" required>
-
-        <label>Servicio:</label>
-        <select id="servicio">
-            <option value="Básico">Básico</option>
-            <option value="Premium">Premium</option>
-            <option value="Express">Express</option>
-        </select>
-
-        <label>Kilos de ropa:</label>
-        <input type="number" id="kilos" min="0" required>
-
-        <label>Número de lavadas acumuladas:</label>
-        <input type="number" id="lavadas" min="0" max="7" required>
-
-        <label>Folio de recibo:</label>
-        <input type="text" id="folio" required>
-
-        <label>Fecha de ingreso:</label>
-        <input type="date" id="fechaIngreso" required>
-
-        <label>Total a pagar:</label>
-        <input type="number" id="total" min="0" required>
-
-        <label>Fecha de entrega:</label>
-        <input type="date" id="fechaEntrega" required>
-
-        <label>Hora de entrega:</label>
-        <input type="time" id="horaEntrega" required>
-
-        <label>Ropa entregada:</label>
-        <textarea id="ropaEntregada" rows="4" placeholder="Ingresa aquí la descripción de la ropa entregada"></textarea>
-
-        <label>Estado del recibo:</label>
-        <select id="estado">
-            <option value="pendiente">pendiente</option>
-            <option value="pagado">pagado</option>
-        </select>
-
-        <button onclick="generarRecibo()">Generar Recibo</button>
-        <button onclick="window.location.href='index.html'">Regresar a Inicio</button>
-        <button onclick="window.location.href='datos.html'">Ver Datos</button>
-    </div>
-
-    <div id="recibo" class="hidden"></div>
-
-    <script>
-        function verificarPassword() {
-            const password = document.getElementById("password").value;
-            if (password === "costa2025") {
-                document.getElementById("loginForm").classList.add("hidden");
-                document.getElementById("reciboForm").classList.remove("hidden");
-                document.body.style.background = "url('imagenes/logo.jpg') no-repeat center center fixed";
-                document.body.style.backgroundSize = "cover";
-            } else {
-                alert("Contraseña incorrecta");
-            }
+                .then(() => console.log("Datos enviados correctamente."))
+                .catch(error => console.error("Error al enviar datos:", error));
         }
 
         function formatDate(dateString) {
@@ -187,7 +154,7 @@
 
         function formatoHora(hora24) {
             const [hora, minutos] = hora24.split(":");
-            const h = parseInt(hora);
+            const h = parseInt(hora, 10);
             const ampm = h >= 12 ? "PM" : "AM";
             const hora12 = h % 12 || 12;
             return `${hora12}:${minutos} ${ampm}`;
@@ -205,8 +172,9 @@
             const horaEntregaRaw = document.getElementById("horaEntrega").value;
             const ropaEntregada = document.getElementById("ropaEntregada").value.trim();
             const estado = document.getElementById("estado").value;
+            const metodoPago = document.getElementById("metodoPago").value;
 
-            if (!folio || !cliente || !servicio || !kilos || isNaN(lavadas) || !fechaIngresoRaw || !total || !fechaEntregaRaw || !horaEntregaRaw || !ropaEntregada || !estado) {
+            if (!folio || !cliente || !servicio || !kilos || isNaN(lavadas) || !fechaIngresoRaw || !total || !fechaEntregaRaw || !horaEntregaRaw || !ropaEntregada || !estado || !metodoPago) {
                 alert("Por favor, complete todos los campos.");
                 return;
             }
@@ -220,11 +188,11 @@
             const fechaEntrega = formatDate(fechaEntregaRaw);
             const horaEntrega = formatoHora(horaEntregaRaw);
 
-            enviarDatosAFirebase(cliente, folio, fechaIngreso, total, servicio, kilos, fechaEntrega, horaEntrega, ropaEntregada, lavadas, estado);
+            enviarDatosAFirebase(cliente, folio, fechaIngreso, total, servicio, kilos, fechaEntrega, horaEntrega, ropaEntregada, lavadas, estado, metodoPago);
 
             let lavadorasHTML = '';
             for (let i = 0; i < lavadas; i++) {
-                lavadorasHTML += `<img src="imagenes/Lavadora.png" class="lavadora-icono">`;
+                lavadorasHTML += `<img src="imagenes/Lavadora.png" class="lavadora-icono" alt="Lavadora">`;
             }
 
             let mensajeLavadas = "";
@@ -236,16 +204,18 @@
                 mensajeLavadas = "🎉 ¡Felicidades! Tienes 50% de descuento en tu siguiente lavada 🎉";
             }
 
+            const metodoPagoTexto = metodoPago === "efectivo" ? "Efectivo" : "Transferencia";
+
             document.getElementById("recibo").innerHTML = `
                 <h2>Gracias por visitar Lavandería JC.</h2>
-                <h3>Nos preocupamos por tus prendas.</h3>
+                <h3>Nosotros nos preocupamos por tus prendas.</h3>
+                 <h4 style="color: red;">"Usted acepta que, presentarà este recibo para recibir su ropa. Sin èl NO debemos entregarla. Gracias".</h4>
                 <p>Tu recibo del día de hoy es:</p>
                 <p><strong>Folio:</strong> <span class="folio">${folio}</span></p>
+                <p><strong>Cliente:</strong> ${cliente}</p>
                 <p><strong>Total:</strong> <span class="total">$${total}</span></p>
-                <p><strong>Estado:</strong> ${estado}</p>
                 <div class="lavadoras-contenedor">${lavadorasHTML}</div>
                 <p><strong>${mensajeLavadas}</strong></p>
-                <p><strong>Cliente:</strong> ${cliente}</p>
                 <p><strong>Servicio:</strong> ${servicio}</p>
                 <p><strong>Kilos:</strong> ${kilos} kg</p>
                 <p><strong>Ropa:</strong> ${ropaEntregada}</p>
@@ -256,8 +226,64 @@
             `;
 
             document.getElementById("recibo").classList.remove("hidden");
-            document.getElementById("reciboForm").scrollIntoView({ behavior: 'smooth' });
+            document.getElementById("recibo").scrollIntoView({ behavior: 'smooth' });
         }
     </script>
+</head>
+<body>
+    <div class="container">
+        <h3>Datos del Recibo</h3>
+        <label for="cliente">Nombre del Cliente:</label>
+        <input type="text" id="cliente" required />
+
+        <label for="servicio">Servicio:</label>
+        <select id="servicio">
+            <option value="Básico">Básico</option>
+            <option value="Premium">Premium</option>
+            <option value="Express">Express</option>
+        </select>
+
+        <label for="kilos">Kilos de ropa:</label>
+        <input type="number" id="kilos" min="0" required />
+
+        <label for="lavadas">Número de lavadas acumuladas:</label>
+        <input type="number" id="lavadas" min="0" max="7" required />
+
+        <label for="folio">Folio de recibo:</label>
+        <input type="text" id="folio" required />
+
+        <label for="fechaIngreso">Fecha de ingreso:</label>
+        <input type="date" id="fechaIngreso" required />
+
+        <label for="total">Total a pagar:</label>
+        <input type="number" id="total" min="0" required />
+
+        <label for="fechaEntrega">Fecha de entrega:</label>
+        <input type="date" id="fechaEntrega" required />
+
+        <label for="horaEntrega">Hora de entrega:</label>
+        <input type="time" id="horaEntrega" required />
+
+        <label for="ropaEntregada">Ropa entregada:</label>
+        <textarea id="ropaEntregada" rows="4" placeholder="Ingresa aquí la descripción de la ropa entregada"></textarea>
+
+        <label for="estado">Estado del recibo:</label>
+        <select id="estado">
+            <option value="pendiente">pendiente</option>
+            <option value="pagado">pagado</option>
+        </select>
+
+        <label for="metodoPago">Método de pago:</label>
+        <select id="metodoPago">
+            <option value="efectivo">Efectivo</option>
+            <option value="transferencia">Transferencia</option>
+        </select>
+
+        <button onclick="generarRecibo()">Generar Recibo</button>
+        <button onclick="window.location.href='index.html'">Regresar a Inicio</button>
+        <button onclick="window.location.href='datos.html'">Ver Datos</button>
+    </div>
+
+    <div id="recibo" class="hidden"></div>
 </body>
 </html>

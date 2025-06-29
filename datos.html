@@ -97,7 +97,7 @@
       <label>Desde: <input type="date" id="filtroDesde"></label>
       <label>Hasta: <input type="date" id="filtroHasta"></label>
     <button onclick="mostrarRecibos()">Aplicar Filtro</button>
-
+    <button style="background-color: red; color: white; margin-top: 10px;" onclick="eliminarFiltrados()">Eliminar Filtrados</button>
     </div>    
 
     <div class="gasto-form">
@@ -105,6 +105,12 @@
       <input type="date" id="fechaGasto" required />
       <input type="text" id="descripcionGasto" placeholder="Descripción" required />
       <input type="number" id="montoGasto" placeholder="Monto ($)" required />
+      <select id="categoriaGasto" required>
+      <option value="" disabled selected>Selecciona categoría</option>
+      <option value="insumos">Insumos</option>
+      <option value="otros">Gastos</option>
+      <option value="otros">Otros</option>
+      </select>
       <button onclick="registrarGasto()">Agregar Gasto</button>
     </div>
 
@@ -114,6 +120,8 @@
 
     <button class="ver-datos" onclick="exportarAExcel()">Descargar Excel</button>
     <button class="volver" onclick="window.location.href='recibos.html'">Volver a Recibos</button>
+    <button class="volver" onclick="window.location.href='analisis.html'">Analisis Avanzado</button>
+    <button onclick="window.location.href='index.html'">Regresar a Inicio</button>
   </div>
 
   <!-- Firebase SDK -->
@@ -200,6 +208,10 @@ function mostrarRecibos() {
           <strong>Ropa:</strong> ${recibo.ropaEntregada}<br>
           <strong>Lavadas acumuladas:</strong> ${recibo.lavadas}<br>
           <strong>Estado:</strong> ${recibo.estado || "pendiente"}<br>
+          <strong>Método de Pago:</strong> <span style="color: ${recibo.metodoPago === 'transferencia' ? 'orange' : 'green'};">
+          ${recibo.metodoPago || 'no especificado'}
+          </span><br>
+          <button onclick="alternarMetodoPago('${clave}')">Cambiar Método de Pago</button>
           <button onclick="editarRecibo('${clave}')">Editar</button>
           <button onclick="eliminarRecibo('${clave}')">Eliminar</button>
           ${
@@ -232,6 +244,7 @@ function mostrarRecibos() {
               <strong>Descripción:</strong> ${gasto.descripcion}<br>
               <strong>Monto:</strong> $${gasto.monto}<br>
               <strong>Fecha:</strong> ${gasto.fecha}<br>
+              <strong>Categoría:</strong> ${gasto.categoria || 'no especificada'}<br>
               <button onclick="editarGasto('${claveGasto}')">Editar</button>
               <button onclick="eliminarGasto('${claveGasto}')">Eliminar</button>
             `;
@@ -251,6 +264,73 @@ function mostrarRecibos() {
       });
 
       actualizarGrafica(datosGraficos);
+      generarGraficaTipoPago();
+    });
+  });
+}
+
+function eliminarFiltrados() {
+  const desde = document.getElementById("filtroDesde").value;
+  const hasta = document.getElementById("filtroHasta").value;
+
+  if (!desde || !hasta) {
+    alert("Por favor selecciona una fecha 'Desde' y una fecha 'Hasta'.");
+    return;
+  }
+
+  const confirmacion = confirm(`¿Seguro que deseas eliminar todos los recibos y gastos del ${desde} al ${hasta}? Esta acción no se puede deshacer.`);
+
+  if (!confirmacion) return;
+
+  const desdeFecha = new Date(desde + "T00:00:00");
+  const hastaFecha = new Date(hasta + "T23:59:59");
+
+  // Eliminar recibos
+  db.ref("recibos").once("value", (snapshot) => {
+    snapshot.forEach((child) => {
+      const recibo = child.val();
+      const clave = child.key;
+      const fechaEntrega = new Date(recibo.fechaEntrega + "T00:00:00");
+
+      if (fechaEntrega >= desdeFecha && fechaEntrega <= hastaFecha) {
+        db.ref("recibos/" + clave).remove();
+      }
+    });
+  });
+
+  // Eliminar gastos
+  db.ref("gastos").once("value", (snapshot) => {
+    snapshot.forEach((child) => {
+      const gasto = child.val();
+      const clave = child.key;
+      const fechaGasto = new Date(gasto.fecha + "T00:00:00");
+
+      if (fechaGasto >= desdeFecha && fechaGasto <= hastaFecha) {
+        db.ref("gastos/" + clave).remove();
+      }
+    });
+  });
+
+  alert("Recibos y gastos eliminados correctamente.");
+  setTimeout(mostrarRecibos, 1000);
+}
+
+function alternarMetodoPago(clave) {
+  db.ref("recibos/" + clave).once("value").then((snapshot) => {
+    const recibo = snapshot.val();
+    let nuevoMetodo;
+
+    if (recibo.metodoPago === "efectivo") {
+      nuevoMetodo = "transferencia";
+    } else {
+      nuevoMetodo = "efectivo";
+    }
+
+    db.ref("recibos/" + clave).update({
+      metodoPago: nuevoMetodo
+    }).then(() => {
+      alert("Método de pago actualizado a: " + nuevoMetodo);
+      mostrarRecibos();
     });
   });
 }
@@ -283,18 +363,75 @@ function actualizarGrafica(datos) {
   });
 }
 
+function generarGraficaTipoPago() {
+  db.ref("recibos").once("value", (snapshot) => {
+    let efectivo = 0;
+    let transferencia = 0;
+
+    snapshot.forEach((childSnapshot) => {
+      const recibo = childSnapshot.val();
+      if (recibo.estado === "pagado") {
+        if (recibo.metodoPago === "efectivo") {
+          efectivo += parseFloat(recibo.total);
+        } else if (recibo.metodoPago === "transferencia") {
+          transferencia += parseFloat(recibo.total);
+        }
+      }
+    });
+
+    // Obtener los gastos también
+    db.ref("gastos").once("value", (gastosSnapshot) => {
+      let totalGastos = 0;
+      gastosSnapshot.forEach((gasto) => {
+        totalGastos += parseFloat(gasto.val().cantidad);
+      });
+
+      // Restar gastos por igual
+      const ingresoEfectivo = efectivo - totalGastos;
+      const ingresoTransferencia = transferencia - totalGastos;
+
+      // Mostrar la gráfica
+      const ctx = document.getElementById("graficaTipoPago").getContext("2d");
+      if (window.graficaTipoPago) {
+        window.graficaTipoPago.destroy(); // Si ya existe, destrúyela para evitar superposición
+      }
+
+      window.graficaTipoPago = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: ["Efectivo", "Transferencia"],
+          datasets: [{
+            label: "Ingresos netos",
+            data: [ingresoEfectivo, ingresoTransferencia],
+            backgroundColor: ["#4caf50", "#2196f3"]
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            title: { display: true, text: 'Ingresos por Tipo de Pago (Descontando gastos)' }
+          }
+        }
+      });
+    });
+  });
+}
+
+
 // Funciones para gastos y recibos
 function registrarGasto() {
   const fecha = document.getElementById("fechaGasto").value;
   const descripcion = document.getElementById("descripcionGasto").value;
   const monto = parseFloat(document.getElementById("montoGasto").value);
+  const categoria = document.getElementById("categoriaGasto").value;
 
-  if (!fecha || !descripcion || isNaN(monto)) {
+  if (!fecha || !descripcion || isNaN(monto) || !categoria) {
     alert("Todos los campos del gasto son obligatorios.");
     return;
   }
 
-  const nuevoGasto = { fecha, descripcion, monto };
+  const nuevoGasto = { fecha, descripcion, monto, categoria };
   db.ref("gastos").push(nuevoGasto).then(() => {
     alert("Gasto registrado correctamente.");
     mostrarRecibos();
@@ -316,34 +453,35 @@ function editarGasto(clave) {
 }
 
 function editarRecibo(clave) {
-  const modal = document.getElementById("modalEditarRecibo");
-  const inputTotal = document.getElementById("modalNuevoTotal");
-  const inputFecha = document.getElementById("modalNuevaFecha");
+  db.ref("recibos/" + clave).once("value", (snapshot) => {
+    if (snapshot.exists()) {
+      const recibo = snapshot.val();
 
-  db.ref("recibos/" + clave).once("value").then((snapshot) => {
-    const recibo = snapshot.val();
-    inputTotal.value = recibo.total;
-    inputFecha.value = recibo.fechaEntrega;
-    modal.style.display = "flex";
+      const nuevoCliente = prompt("Editar nombre del cliente:", recibo.cliente);
+      const nuevaFechaIngreso = prompt("Editar fecha de ingreso (YYYY-MM-DD):", recibo.fechaIngreso);
+      const nuevaFechaEntrega = prompt("Editar fecha de entrega (YYYY-MM-DD):", recibo.fechaEntrega);
+      const nuevoTotal = prompt("Editar total ($):", recibo.total);
 
-    const guardarBtn = document.getElementById("btnGuardarCambios");
-    guardarBtn.onclick = function () {
-      const nuevoTotal = parseFloat(inputTotal.value);
-      const nuevaFecha = inputFecha.value;
-
-      if (!isNaN(nuevoTotal) && nuevaFecha) {
+      if (
+        nuevoCliente !== null &&
+        nuevaFechaIngreso !== null &&
+        nuevaFechaEntrega !== null &&
+        nuevoTotal !== null
+      ) {
         db.ref("recibos/" + clave).update({
-          total: nuevoTotal,
-          fechaEntrega: nuevaFecha
+          cliente: nuevoCliente,
+          fechaIngreso: nuevaFechaIngreso,
+          fechaEntrega: nuevaFechaEntrega,
+          total: nuevoTotal
         }).then(() => {
-          alert("Recibo actualizado.");
-          modal.style.display = "none";
-          mostrarRecibos();
+          alert("Recibo actualizado correctamente.");
+          mostrarRecibos(); // Refresca la lista
+        }).catch((error) => {
+          console.error("Error al actualizar:", error);
+          alert("Error al actualizar el recibo.");
         });
-      } else {
-        alert("Por favor, completa todos los campos correctamente.");
       }
-    };
+    }
   });
 }
 
@@ -430,18 +568,24 @@ document.getElementById("filtroHasta").addEventListener("change", mostrarRecibos
 
 window.onload = mostrarRecibos;
 </script>
-<div id="modalEditarRecibo" class="modal" style="display: none; position: fixed; top: 0; left: 0; 
-  width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); justify-content: center; align-items: center;">
-  <div class="modal-contenido" style="background: white; color: black; padding: 20px; border-radius: 10px; width: 300px;">
+<div id="modalEditarRecibo" style="display: none;" class="modal">
+  <div class="modal-content">
     <h3>Editar Recibo</h3>
-    <label for="modalNuevoTotal">Total:</label>
-    <input type="number" id="modalNuevoTotal" class="modal-input" style="width: 100%; margin-bottom: 10px;" /><br>
 
-    <label for="modalNuevaFecha">Fecha de Entrega:</label>
-    <input type="date" id="modalNuevaFecha" class="modal-input" style="width: 100%; margin-bottom: 10px;" /><br>
+    <label>Nombre del Cliente:</label>
+    <input type="text" id="modalNuevoCliente"><br>
 
-    <button id="btnGuardarCambios" style="margin-right: 10px;">Guardar</button>
-    <button onclick="cerrarModalEdicion()">Cancelar</button>
+    <label>Fecha de Ingreso:</label>
+    <input type="date" id="modalNuevaFechaIngreso"><br>
+
+    <label>Fecha de Entrega:</label>
+    <input type="date" id="modalNuevaFechaEntrega"><br>
+
+    <label>Total ($):</label>
+    <input type="number" id="modalNuevoTotal" step="0.01"><br>
+
+    <button id="btnGuardarCambios">Guardar Cambios</button>
+    <button onclick="document.getElementById('modalEditarRecibo').style.display='none'">Cancelar</button>
   </div>
 </div>
 

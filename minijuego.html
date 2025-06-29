@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Minijuego de Cupones</title>
+  <link rel="icon" href="imagenes/favicon.png" type="image/png">
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-image: url('imagenes/suerte.png');
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-position: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: start;
+      padding: 40px 20px;
+      position: relative;
+      min-height: 100vh;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+      text-align: center;
+      background-color: rgba(255, 255, 255, 0.8);
+      padding: 10px 20px;
+      border-radius: 12px;
+    }
+
+    #jugarBtn {
+      padding: 15px 30px;
+      font-size: 18px;
+      background: linear-gradient(135deg, #28a745, #218838);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    #jugarBtn:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+    }
+
+    #contadorRestante {
+      margin-top: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      color: #ff5722;
+      background-color: rgba(255, 255, 255, 0.8);
+      padding: 8px 16px;
+      border-radius: 10px;
+      display: none;
+    }
+
+    .resultado {
+      margin-top: 30px;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      max-width: 400px;
+      background-color: rgba(255, 255, 255, 0.9);
+    }
+
+    .cupon {
+      background-color: #e0ffe0;
+      border: 2px dashed #28a745;
+    }
+
+    .no-cupon {
+      background-color: #ffe0e0;
+      border: 2px dashed #dc3545;
+    }
+
+    input[type="text"] {
+      margin-top: 15px;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      width: 80%;
+    }
+
+    button.aceptarBtn {
+      margin-top: 15px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      background-color: #007bff;
+      color: white;
+    }
+
+    .fecha, .info-vencimiento {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #333;
+    }
+
+    .cupon-final {
+      margin-top: 20px;
+      padding: 20px;
+      background-color: #fff5cc;
+      border: 2px dashed #ffc107;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    .cupon-final h2 {
+      color: #ff9800;
+    }
+
+    .cupon-final p {
+      font-size: 16px;
+      color: #444;
+    }
+
+    .volverBtnFlotante {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 50px;
+      background-color: #6c757d;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      z-index: 1000;
+    }
+
+    .volverBtnFlotante:hover {
+      background-color: #5a6268;
+    }
+
+    .ayudaBtn {
+      position: fixed;
+      bottom: 90px;
+      right: 20px;
+      padding: 12px 18px;
+      font-size: 16px;
+      border: none;
+      border-radius: 50px;
+      background-color: #17a2b8;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      z-index: 1000;
+    }
+
+    .ayudaBtn:hover {
+      background-color: #138496;
+    }
+
+    .ayudaTexto {
+      position: fixed;
+      bottom: 150px;
+      right: 20px;
+      background-color: white;
+      border: 1px solid #ccc;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      max-width: 300px;
+      display: none;
+      z-index: 1001;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎁 Gira y gana por un cupón de descuento</h1>
+  <button id="jugarBtn">¡Intentar suerte!</button>
+  <div id="contadorRestante"></div>
+
+  <div id="resultado" class="resultado"></div>
+  <div id="cuponFinal"></div>
+
+  <div class="ayudaTexto" id="ayudaTexto">
+    <strong>Reglas del juego:</strong>
+    <ul>
+      <li>Solo puedes jugar una vez cada 5 minutos.</li>
+      <li>Ingresa tu nombre si ganas un cupón para que se guarde a tu nombre.</li>
+      <li>Como maximo puedes usar 2 cupones al mismo tiempo como descuento para tu lavada.</li>
+      <li>👀El cupón es válido a la fecha de vencimiento.👀</li>
+      <li>Muestra tu cupón en tu próxima visita.</li>
+      <li>Cuando consigas un cupon ganador guardalo con una captura de pantalla y muestralo en tu proxima visita.</li>
+      <li>Diviertete.</li>
+    </ul>
+  </div>
+
+  <button class="ayudaBtn" onclick="toggleAyuda()">❔ Ayuda</button>
+  <button class="volverBtnFlotante" onclick="location.href='index.html'">🏠 Volver a Inicio</button>
+
+  <!-- Scripts Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <script>
+    // Configura tu Firebase aquí
+    const firebaseConfig = {
+    apiKey: "AIzaSyCwBZMUnQ6rH3APMo4kXDiDvg_u7Zsud9w",
+    authDomain: "lavanderia-nueva.firebaseapp.com",
+    databaseURL: "https://lavanderia-nueva-default-rtdb.firebaseio.com",
+    projectId: "lavanderia-nueva",
+    storageBucket: "lavanderia-nueva.appspot.com",
+    messagingSenderId: "1074532951",
+    appId: "1:1074532951:web:311703f9f5441d11240912"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const jugarBtn = document.getElementById('jugarBtn');
+    const resultadoDiv = document.getElementById('resultado');
+    const cuponFinalDiv = document.getElementById('cuponFinal');
+    const ayudaTexto = document.getElementById('ayudaTexto');
+    const contadorDiv = document.getElementById('contadorRestante');
+
+    const OPCIONES = [
+      { texto: "🎉 ¡Ganaste un 15% de descuento!", clase: "cupon", prob: 0.01 },
+      { texto: "🎉 ¡Ganaste un 10% de descuento!", clase: "cupon", prob: 0.02 },
+      { texto: "🎉 ¡Ganaste un 5% de descuento!", clase: "cupon", prob: 0.03 },
+      { texto: "❌ Lavanderia JC agadece tu participacion. no conseguiste cupón, puedes seguirlo intentando el boton se habilita cada 5 minutos", clase: "no-cupon", prob: 0.7 }
+    ];
+
+    const MILISEGUNDOS = 1000 * 60 * 5;
+
+    function formatearFecha(date) {
+      return date.toLocaleDateString('es-MX', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+    }
+
+    function actualizarContador(tiempoRestante) {
+      contadorDiv.style.display = 'block';
+      const interval = setInterval(() => {
+        const segundos = Math.floor(tiempoRestante / 1000);
+        const min = Math.floor(segundos / 60);
+        const seg = segundos % 60;
+
+        contadorDiv.textContent = `⏳ Puedes volver a participar en ${min}m ${seg < 5 ? '0' : ''}${seg}s alguien mas jugo recientemente!`;
+
+        tiempoRestante -= 1000;
+
+        if (tiempoRestante <= 0) {
+          clearInterval(interval);
+          contadorDiv.style.display = 'none';
+          jugarBtn.disabled = false;
+        }
+      }, 1000);
+    }
+
+    async function verificarBloqueo() {
+      const snapshot = await db.ref("cupones/ultimoIntento").get();
+      const ultimoClick = snapshot.val() || 0;
+      const ahora = Date.now();
+      const diferencia = ahora - ultimoClick;
+      if (diferencia < MILISEGUNDOS) {
+        jugarBtn.disabled = true;
+        const restante = MILISEGUNDOS - diferencia;
+        actualizarContador(restante);
+      }
+    }
+
+    function obtenerOpcion() {
+      const rand = Math.random();
+      let acumulado = 0;
+      for (let opcion of OPCIONES) {
+        acumulado += opcion.prob;
+        if (rand <= acumulado) {
+          return opcion;
+        }
+      }
+      return OPCIONES[OPCIONES.length - 1];
+    }
+
+    jugarBtn.addEventListener('click', () => {
+      const opcion = obtenerOpcion();
+      db.ref("cupones/ultimoIntento").set(Date.now());
+      jugarBtn.disabled = true;
+      actualizarContador(MILISEGUNDOS);
+      cuponFinalDiv.innerHTML = "";
+      resultadoDiv.className = `resultado ${opcion.clase}`;
+      resultadoDiv.innerHTML = `<p>${opcion.texto}</p>`;
+
+      if (opcion.clase === "cupon") {
+        const hoy = new Date();
+        const vencimiento = new Date(hoy.getTime() + 2 * 24 * 60 * 60 * 1000);
+        const fechaHoy = formatearFecha(hoy);
+        const fechaVence = formatearFecha(vencimiento);
+
+        resultadoDiv.innerHTML += `
+          <input type="text" id="nombreUsuario" placeholder="Ingresa tu nombre" />
+          <div class="fecha">📅 Fecha de emisión: ${fechaHoy}</div>
+          <div class="info-vencimiento">⏳ Válido hasta: ${fechaVence}</div>
+          <button class="aceptarBtn" onclick="mostrarCupon('${opcion.texto}', '${fechaHoy}', '${fechaVence}')">Aceptar</button>
+        `;
+      }
+    });
+
+    function mostrarCupon(texto, fecha, vence) {
+      const nombre = document.getElementById("nombreUsuario").value.trim();
+      if (!nombre) {
+        alert("Por favor, ingresa tu nombre.");
+        return;
+      }
+
+      const cuponData = {
+        nombre,
+        texto,
+        fecha,
+        vence
+      };
+
+      const nuevoCupon = db.ref("cupones/ganados").push();
+      nuevoCupon.set(cuponData);
+
+      resultadoDiv.innerHTML = '';
+      cuponFinalDiv.innerHTML = `
+        <div class="cupon-final">
+          <h2>🎫 Cupón de Descuento - TOMA UNA CAPTURA DE PANTALLA!</h2>
+          <p><strong>${texto}</strong></p>
+          <p>Nombre: <strong>${nombre}</strong></p>
+          <p>📅 Emitido: ${fecha}</p>
+          <p>⏳ Válido hasta: ${vence}</p>
+          <p>¡Muestra este cupón en tu próxima visita y reclama tu descuento!</p>
+        </div>
+      `;
+    }
+
+    function toggleAyuda() {
+      ayudaTexto.style.display = ayudaTexto.style.display === 'block' ? 'none' : 'block';
+    }
+
+    verificarBloqueo();
+  </script>
+</body>
+</html>
