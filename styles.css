@@ -180,7 +180,20 @@ input, select {
     color: black;
 }
 
-.mensaje-importante {
-    color: red;
-    font-weight: bold;
+.boton-flotante {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    background-color: #007BFF;
+    color: white;
+    padding: 14px 18px;
+    border-radius: 50%;
+    text-decoration: none;
+    font-size: 24px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    z-index: 999;
+    transition: background-color 0.3s;
+}
+.boton-flotante:hover {
+    background-color: #0056b3;
 }

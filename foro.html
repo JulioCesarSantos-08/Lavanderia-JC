@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="icon" href="imagenes/favicon.png" type="image/png">
+    <meta charset="UTF-8">
+    <title>Foro de Opiniones - Lavandería JC</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: url('logo.jpg') no-repeat center center fixed;
+            background-size: cover;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #fff;
+            text-shadow: 1px 1px 2px black;
+        }
+        #comentarioForm, #comentarios {
+            max-width: 700px;
+            margin: 30px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px #ccc;
+        }
+        .comentario {
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+        }
+        .comentario strong {
+            color: #007BFF;
+        }
+        .estrellas {
+            margin: 10px 0;
+        }
+        .estrella {
+            font-size: 24px;
+            cursor: pointer;
+            color: #ccc;
+        }
+        .estrella.seleccionada {
+            color: gold;
+        }
+        #volver {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #28a745;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        #volver:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Foro de Opiniones - Lavandería JC</h1>
+
+<div id="comentarioForm">
+    <h2>Déjanos tu comentario</h2>
+    <input type="text" id="nombre" placeholder="Tu nombre" required style="width:100%; padding:10px; margin-bottom:10px;"><br>
+    <textarea id="comentario" placeholder="Escribe tu experiencia, sugerencia u opinión" rows="4" style="width:100%; padding:10px;"></textarea><br>
+    
+    <div class="estrellas" id="estrellas">
+        <span class="estrella" data-valor="1">★</span>
+        <span class="estrella" data-valor="2">★</span>
+        <span class="estrella" data-valor="3">★</span>
+        <span class="estrella" data-valor="4">★</span>
+        <span class="estrella" data-valor="5">★</span>
+    </div>
+
+    <button onclick="enviarComentario()" style="padding:10px 20px;">Enviar</button>
+</div>
+
+<div id="comentarios">
+    <h2>Comentarios de Clientes</h2>
+    <div id="listaComentarios"></div>
+</div>
+
+<a href="index.html" id="volver">⬅ Volver al Inicio</a>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyCwBZMUnQ6rH3APMo4kXDiDvg_u7Zsud9w",
+        authDomain: "lavanderia-nueva.firebaseapp.com",
+        databaseURL: "https://lavanderia-nueva-default-rtdb.firebaseio.com",
+        projectId: "lavanderia-nueva",
+        storageBucket: "lavanderia-nueva.appspot.com",
+        messagingSenderId: "1074532951",
+        appId: "1:1074532951:web:311703f9f5441d11240912"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let calificacion = 0;
+
+    // Estrellas seleccionables
+    const estrellas = document.querySelectorAll('.estrella');
+    estrellas.forEach(estrella => {
+        estrella.addEventListener('click', () => {
+            calificacion = parseInt(estrella.dataset.valor);
+            actualizarEstrellas(calificacion);
+        });
+    });
+
+    function actualizarEstrellas(valor) {
+        estrellas.forEach(e => {
+            if (parseInt(e.dataset.valor) <= valor) {
+                e.classList.add('seleccionada');
+            } else {
+                e.classList.remove('seleccionada');
+            }
+        });
+    }
+
+    function enviarComentario() {
+        const nombre = document.getElementById("nombre").value.trim();
+        const comentario = document.getElementById("comentario").value.trim();
+
+        if (nombre === "" || comentario === "") {
+            alert("Por favor completa todos los campos.");
+            return;
+        }
+
+        if (calificacion < 1 || calificacion > 5) {
+            alert("Por favor selecciona una calificación entre 1 y 5 estrellas.");
+            return;
+        }
+
+        const nuevoComentario = {
+            nombre,
+            comentario,
+            calificacion,
+            fecha: new Date().toLocaleString()
+        };
+
+        db.ref("comentarios").push(nuevoComentario);
+
+        document.getElementById("nombre").value = "";
+        document.getElementById("comentario").value = "";
+        calificacion = 0;
+        actualizarEstrellas(0);
+    }
+
+    function mostrarComentarios() {
+        const listaComentarios = document.getElementById("listaComentarios");
+        db.ref("comentarios").on("value", snapshot => {
+            listaComentarios.innerHTML = "";
+
+            const datos = snapshot.val();
+            if (datos) {
+                Object.values(datos).reverse().forEach(c => {
+                    const div = document.createElement("div");
+                    div.className = "comentario";
+
+                    let estrellasHTML = '';
+                    for (let i = 1; i <= 5; i++) {
+                        estrellasHTML += `<span style="color:${i <= c.calificacion ? 'gold' : '#ccc'};">★</span>`;
+                    }
+
+                    div.innerHTML = `
+                        <p><strong>${c.nombre}</strong> <small>(${c.fecha})</small></p>
+                        <p>${c.comentario}</p>
+                        <p>Calificación: ${estrellasHTML}</p>
+                    `;
+                    listaComentarios.appendChild(div);
+                });
+            } else {
+                listaComentarios.innerHTML = "<p>Aún no hay comentarios. ¡Sé el primero en opinar!</p>";
+            }
+        });
+    }
+
+    mostrarComentarios();
+</script>
+
+</body>
+</html>

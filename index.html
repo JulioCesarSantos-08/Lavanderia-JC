@@ -96,6 +96,30 @@
             font-weight: bold;
             z-index: 10000;
         }
+
+        .social a {
+    display: inline-block;
+    margin: 8px 5px;
+    padding: 10px 15px;
+  
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: background-color 0.3s;
+}
+
+.social a:hover {
+    background-color: #0056b3;
+}
+
+.social a.foro {
+    background-color: #00cfff; /* Celeste */
+    color: white;
+}
+.social a.foro:hover {
+    background-color: #3765fa; /* Celeste oscuro al pasar el mouse */
+}
+
     </style>
 </head>
 <body>
@@ -126,6 +150,7 @@
             <a href="https://tienda-online-jc.vercel.app/" target="_blank" class="tienda">Tienda Online JC</a>
             <a href="https://maps.app.goo.gl/ie6BAwzGN4JYDQhr6?g_st=aw" target="_blank" class="ubicacion">Nos Ubicamos</a>
             <a href="anuncios.html" class="anuncios">Anuncios</a>
+            <a href="foro.html" class="foro">Foro de Opiniones</a>
         </div>
     </div>
 
@@ -193,5 +218,6 @@
             }, 2000);
         };
     </script>
+    
 </body>
 </html>
