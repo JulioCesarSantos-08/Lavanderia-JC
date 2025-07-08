@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Minijuego 3 - Lavadora 🧺</title>
+  <link rel="icon" href="imagenes/favicon.png" type="image/png">
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      padding: 20px;
+      background-image: url('imagenes/juego3.png');
+      background-size: cover;
+      background-position: center;
+    }
+
+    h1 {
+      background-color: rgba(255,255,255,0.8);
+      padding: 15px;
+      border-radius: 10px;
+    }
+
+    #lavadora {
+      margin: 20px auto;
+      width: 200px;
+      height: 200px;
+      background: url('imagenes/lavadora.png') center/contain no-repeat;
+    }
+
+    #timer, #timer2 {
+      font-size: 2em;
+      margin: 15px;
+      font-weight: bold;
+    }
+
+    #iniciarBtn, #sacarBtn {
+      padding: 15px 30px;
+      font-size: 18px;
+      margin: 10px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    #iniciarBtn {
+      background-color: #28a745;
+      color: white;
+    }
+
+    #sacarBtn {
+      background-color: #007bff;
+      color: white;
+      display: none;
+    }
+
+    #status, #cuponFinal {
+      margin: 20px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .cupon-final {
+      padding: 20px;
+      background-color: #fff5cc;
+      border: 2px dashed #ffc107;
+      border-radius: 10px;
+      max-width: 350px;
+      margin: auto;
+    }
+
+    .float-btn {
+      position: fixed;
+      border: none;
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 50px;
+      color: white;
+      cursor: pointer;
+      z-index: 1000;
+    }
+
+    .volverBtn {
+      bottom: 20px;
+      right: 20px;
+      background-color: #6c757d;
+    }
+
+    .menuBtn {
+      bottom: 70px;
+      right: 20px;
+      background-color: #ffc107;
+      color: #000;
+    }
+
+    .ayudaBtn {
+      bottom: 120px;
+      right: 20px;
+      background-color: #17a2b8;
+    }
+
+    .ayudaTexto {
+      position: fixed;
+      bottom: 170px;
+      right: 20px;
+      background-color: white;
+      border: 1px solid #ccc;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      max-width: 300px;
+      display: none;
+      z-index: 1001;
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+  <h1>Lavadora – ¡saca a tiempo tu ropa!</h1>
+  <div id="lavadora"></div>
+
+  <button id="iniciarBtn">Iniciar lavado (36 min)</button>
+  <div id="timer"></div>
+  <button id="sacarBtn">¡Sacar ropa ahora!</button>
+  <div id="timer2"></div>
+
+  <div id="status"></div>
+  <div id="cuponFinal"></div>
+
+  <div class="ayudaTexto" id="ayudaTexto">
+    <strong>¿Cómo jugar?</strong>
+    <ul>
+      <li>Haz clic en “Iniciar lavado” para comenzar.</li>
+      <li>La lavadora tarda 36 minutos en lavar tu ropa.</li>
+      <li>Cuando termine, tendrás 5 minutos para sacar la ropa.</li>
+      <li>Si no lo haces a tiempo, pierdes.</li>
+      <li>Si sacas la ropa a tiempo, recibirás un cupón (5%, 10%, o 15%).</li>
+      <li>¡Solo puedes jugar una vez cada 24 horas por dispositivo!</li>
+      <li>Después de ganar, escribe tu nombre para generar el cupón y tomarle captura.</li>
+    </ul>
+  </div>
+
+  <button class="float-btn ayudaBtn" onclick="toggleAyuda()">❔ Ayuda</button>
+  <button class="float-btn menuBtn" onclick="location.href='menujuegos.html'">🎮 Menú Juegos</button>
+  <button class="float-btn volverBtn" onclick="location.href='index.html'">🏠 Inicio</button>
+
+  <script>
+    const premios = [
+      { descuento:5, prob:0.6 },
+      { descuento:10, prob:0.3 },
+      { descuento:15, prob:0.1 }
+    ];
+
+    function elegirPremio() {
+      let rnd = Math.random();
+      let acum = 0;
+      for (let p of premios) {
+        acum += p.prob;
+        if (rnd <= acum) return p.descuento;
+      }
+      return 5;
+    }
+
+    function setWithExpiry(key, val, ttl) {
+      const item = { value: val, expiry: Date.now()+ttl };
+      localStorage.setItem(key, JSON.stringify(item));
+    }
+
+    function getWithExpiry(key) {
+      const str = localStorage.getItem(key);
+      if (!str) return null;
+      try {
+        const item = JSON.parse(str);
+        if (Date.now() > item.expiry) {
+          localStorage.removeItem(key);
+          return null;
+        }
+        return item.value;
+      } catch { return null; }
+    }
+
+    const iniciarBtn = document.getElementById("iniciarBtn");
+    const sacarBtn = document.getElementById("sacarBtn");
+    const timerEl = document.getElementById("timer");
+    const timer2El = document.getElementById("timer2");
+    const status = document.getElementById("status");
+    const cuponFinal = document.getElementById("cuponFinal");
+
+    let t1, t2;
+    const washDuration = 36*60;
+    const grace = 5*60;
+    const playKey = "minijuego3_last";
+
+    function puedeJugar() {
+      return !getWithExpiry(playKey);
+    }
+
+    function iniciarLavado() {
+      if (!puedeJugar()) {
+        status.textContent = "Solo puedes jugar una vez cada 24 horas.";
+        return;
+      }
+
+      setWithExpiry(playKey, true, 24*60*60*1000);
+      iniciarBtn.disabled = true;
+      status.textContent = "Lavando... ⏳";
+      let tiempo = washDuration;
+      timerEl.textContent = formatTime(tiempo);
+
+      t1 = setInterval(() => {
+        tiempo--;
+        timerEl.textContent = formatTime(tiempo);
+        if (tiempo <= 0) {
+          clearInterval(t1);
+          status.textContent = "¡Lavado completo! Saca la ropa en 5 min.";
+          sacarBtn.style.display = "inline-block";
+          empezarGracia();
+        }
+      }, 1000);
+    }
+
+    function empezarGracia() {
+      let tiempo = grace;
+      timer2El.textContent = formatTime(tiempo);
+      t2 = setInterval(() => {
+        tiempo--;
+        timer2El.textContent = formatTime(tiempo);
+        if (tiempo <= 0) {
+          clearInterval(t2);
+          perder();
+        }
+      }, 1000);
+    }
+
+    function sacar() {
+      clearInterval(t2);
+      timer2El.textContent = "";
+      const d = elegirPremio();
+      mostrarCupon(d);
+    }
+
+    function perder() {
+      status.textContent = "Perdiste: no sacaste la ropa a tiempo 😢";
+    }
+
+    function mostrarCupon(d) {
+      const nombre = prompt("¡Felicidades! Ingresa tu nombre para tu cupón:");
+      if (!nombre) return perder();
+
+      const hoy = new Date();
+      const fecha = hoy.toLocaleDateString();
+      const vence = new Date(Date.now() + 2*24*3600*1000).toLocaleDateString();
+
+      cuponFinal.innerHTML = `
+        <div class="cupon-final">
+          <h2>🎫 Cupón ${d}% de descuento</h2>
+          <p>Nombre: <strong>${nombre}</strong></p>
+          <p>📅 Emitido: ${fecha}</p>
+          <p>⏳ Válido hasta: ${vence}</p>
+          <p>¡Tómale captura y preséntalo!</p>
+        </div>`;
+      status.textContent = "¡Listo! Revisa tu cupón.";
+    }
+
+    function formatTime(s) {
+      const m = Math.floor(s / 60);
+      const sec = s % 60;
+      return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+    }
+
+    function toggleAyuda() {
+      const ayuda = document.getElementById("ayudaTexto");
+      ayuda.style.display = ayuda.style.display === "block" ? "none" : "block";
+    }
+
+    iniciarBtn.addEventListener("click", iniciarLavado);
+    sacarBtn.addEventListener("click", sacar);
+  </script>
+</body>
+</html>

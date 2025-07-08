@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Buscaminas de Lavandería</title>
+  <link rel="icon" href="imagenes/favicon.png" type="image/png">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-image: url('imagenes/juego2.png');
+      background-size: cover;
+      background-position: center;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      background-color: rgba(255,255,255,0.8);
+      padding: 15px;
+      border-radius: 10px;
+    }
+
+    #jugarBtn {
+      padding: 15px 30px;
+      font-size: 18px;
+      margin: 20px;
+      border: none;
+      background-color: #28a745;
+      color: white;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    #game {
+      display: none;
+      margin: auto;
+      max-width: 400px;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    .cell {
+      perspective: 1000px;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      position: relative;
+    }
+
+    .inner-cell {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.6s;
+      transform-style: preserve-3d;
+      cursor: pointer;
+    }
+
+    .cell.flipped .inner-cell {
+      transform: rotateY(180deg);
+    }
+
+    .cell-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .cell-front {
+      background-image: url('imagenes/logo.jpg');
+      background-size: cover;
+      background-position: center;
+    }
+
+    .cell-back {
+      background-color: #d1ffd1;
+      transform: rotateY(180deg);
+    }
+
+    .bomb-back {
+      background-color: #ffcccc;
+      color: #b30000;
+    }
+
+    #status {
+      margin-top: 15px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    #nombreForm, #cuponFinal {
+      display: none;
+      margin-top: 20px;
+    }
+
+    input[type="text"] {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 8px;
+      width: 80%;
+      margin-bottom: 10px;
+    }
+
+    .aceptarBtn {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .cupon-final {
+      padding: 20px;
+      background-color: #fff5cc;
+      border: 2px dashed #ffc107;
+      border-radius: 10px;
+      max-width: 350px;
+      margin: auto;
+    }
+
+    .float-btn {
+      position: fixed;
+      border: none;
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 50px;
+      color: white;
+      cursor: pointer;
+      z-index: 1000;
+    }
+
+    .volverBtn {
+      bottom: 20px;
+      right: 20px;
+      background-color: #6c757d;
+    }
+
+    .menuBtn {
+      bottom: 70px;
+      right: 20px;
+      background-color: #ffc107;
+      color: #000;
+    }
+
+    .ayudaBtn {
+      bottom: 120px;
+      right: 20px;
+      background-color: #17a2b8;
+    }
+
+    .ayudaTexto {
+      position: fixed;
+      bottom: 170px;
+      right: 20px;
+      background-color: white;
+      border: 1px solid #ccc;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      max-width: 300px;
+      display: none;
+      z-index: 1001;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧺 Buscaminas de Lavandería - Descubre la Ropa Limpia</h1>
+  <button id="jugarBtn">🎲 Intentar suerte</button>
+  <div id="game"></div>
+  <p id="status"></p>
+
+  <div id="nombreForm">
+    <input type="text" id="nombreInput" placeholder="Tu nombre" />
+    <button class="aceptarBtn" onclick="mostrarCupon()">Aceptar</button>
+  </div>
+
+  <div id="cuponFinal"></div>
+
+  <div class="ayudaTexto" id="ayudaTexto">
+    <strong>¿Cómo jugar?</strong>
+    <ul>
+      <li>Haz clic en los cuadros. Al girar, muestran su contenido.</li>
+      <li>🧼 representa ropa limpia, 💣 representa ropa sucia.</li>
+      <li>Si descubres 14 celdas: 5%, 17: 10%, 20: 15%.</li>
+      <li>Si descubres una 💣, pierdes.</li>
+      <li>Si ganas, escribe tu nombre y se generará un cupón con tu nombre para que tomes captura.</li>
+    </ul>
+  </div>
+
+  <button class="float-btn ayudaBtn" onclick="toggleAyuda()">❔ Ayuda</button>
+  <button class="float-btn menuBtn" onclick="location.href='menujuegos.html'">🎮 Menú Juegos</button>
+  <button class="float-btn volverBtn" onclick="location.href='index.html'">🏠 Inicio</button>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCwBZMUnQ6rH3APMo4kXDiDvg_u7Zsud9w",
+      authDomain: "lavanderia-nueva.firebaseapp.com",
+      databaseURL: "https://lavanderia-nueva-default-rtdb.firebaseio.com",
+      projectId: "lavanderia-nueva",
+      storageBucket: "lavanderia-nueva.appspot.com",
+      messagingSenderId: "1074532951",
+      appId: "1:1074532951:web:311703f9f5441d11240912"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const jugarBtn = document.getElementById("jugarBtn");
+    const game = document.getElementById("game");
+    const statusText = document.getElementById("status");
+    const nombreForm = document.getElementById("nombreForm");
+    const nombreInput = document.getElementById("nombreInput");
+    const cuponFinal = document.getElementById("cuponFinal");
+
+    let bombPositions = [];
+    let revealedCount = 0;
+    let premioActual = 0;
+    let gameOver = false;
+
+    jugarBtn.addEventListener("click", iniciarJuego);
+
+    function iniciarJuego() {
+      game.innerHTML = "";
+      game.style.display = "grid";
+      bombPositions = [];
+      revealedCount = 0;
+      gameOver = false;
+      premioActual = 0;
+      statusText.textContent = "";
+      nombreForm.style.display = "none";
+      cuponFinal.style.display = "none";
+      cuponFinal.innerHTML = "";
+
+      while (bombPositions.length < 5) {
+        const rand = Math.floor(Math.random() * 30);
+        if (!bombPositions.includes(rand)) bombPositions.push(rand);
+      }
+
+      for (let i = 0; i < 30; i++) {
+        const cell = document.createElement("div");
+        cell.classList.add("cell");
+        cell.dataset.index = i;
+
+        const inner = document.createElement("div");
+        inner.classList.add("inner-cell");
+
+        const front = document.createElement("div");
+        front.classList.add("cell-face", "cell-front");
+
+        const back = document.createElement("div");
+        back.classList.add("cell-face", "cell-back");
+
+        inner.appendChild(front);
+        inner.appendChild(back);
+        cell.appendChild(inner);
+
+        cell.addEventListener("click", () => revelarCelda(cell, back));
+        game.appendChild(cell);
+      }
+    }
+
+    function revelarCelda(cell, backFace) {
+      if (gameOver || cell.classList.contains("flipped")) return;
+
+      const index = parseInt(cell.dataset.index);
+      cell.classList.add("flipped");
+
+      if (bombPositions.includes(index)) {
+        backFace.textContent = "💣";
+        backFace.classList.add("bomb-back");
+        terminarJuego(false);
+      } else {
+        backFace.textContent = "🧼";
+        revealedCount++;
+
+        if (revealedCount === 14) {
+          statusText.textContent = "¡Llevas 5% de descuento!";
+          premioActual = 5;
+        } else if (revealedCount === 17) {
+          statusText.textContent = "¡Llevas 10% de descuento!";
+          premioActual = 10;
+        } else if (revealedCount === 20) {
+          statusText.textContent = "¡Llevas 15% de descuento!";
+          premioActual = 15;
+        } else if (revealedCount === 25) {
+          terminarJuego(true);
+        }
+      }
+    }
+
+    function terminarJuego(ganaste) {
+      gameOver = true;
+      const cells = document.querySelectorAll(".cell");
+      bombPositions.forEach(idx => {
+        const cell = cells[idx];
+        if (!cell.classList.contains("flipped")) {
+          cell.classList.add("flipped");
+          const back = cell.querySelector(".cell-back");
+          back.textContent = "💣";
+          back.classList.add("bomb-back");
+        }
+      });
+
+      if (ganaste || premioActual > 0) {
+        statusText.textContent += " ¡Felicidades!";
+        nombreForm.style.display = "block";
+      } else {
+        statusText.textContent = "Perdiste 😢";
+      }
+    }
+
+    function mostrarCupon() {
+      const nombre = nombreInput.value.trim();
+      if (nombre === "") {
+        alert("Por favor, ingresa tu nombre.");
+        return;
+      }
+
+      const hoy = new Date();
+      const fecha = hoy.toLocaleDateString();
+      const vence = new Date(hoy.getTime() + 2 * 86400000).toLocaleDateString();
+      const texto = `Ganaste un ${premioActual}% de descuento`;
+
+      db.ref("cupones/ganados").push({ nombre, texto, fecha, vence });
+
+      cuponFinal.style.display = "block";
+      nombreForm.style.display = "none";
+      cuponFinal.innerHTML = `
+        <div class="cupon-final">
+          <h2>🎫 Cupón de Descuento</h2>
+          <p><strong>${texto}</strong></p>
+          <p>Nombre: <strong>${nombre}</strong></p>
+          <p>📅 Emitido: ${fecha}</p>
+          <p>⏳ Válido hasta: ${vence}</p>
+          <p>¡Tómale captura y muéstralo en tu próxima visita!</p>
+        </div>
+      `;
+    }
+
+    function toggleAyuda() {
+      const ayuda = document.getElementById("ayudaTexto");
+      ayuda.style.display = ayuda.style.display === "block" ? "none" : "block";
+    }
+  </script>
+</body>
+</html>

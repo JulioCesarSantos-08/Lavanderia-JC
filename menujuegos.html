@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menú de Juegos</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #f2f2f2;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+        }
+
+        header {
+            width: 100%;
+            background-color: #3f51b5;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .juegos-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            gap: 20px;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .juego-btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        .juego-btn:hover {
+            background-color: #45a049;
+        }
+
+        .volver-btn {
+            margin-top: 30px;
+            background-color: #ff4081;
+        }
+
+        .volver-btn:hover {
+            background-color: #e91e63;
+        }
+    </style>
+</head>
+<body>
+    <header>🎮 Menú de Minijuegos</header>
+
+    <div class="juegos-container">
+        <button class="juego-btn" onclick="window.location.href='minijuego1.html'">Minijuego 1 - Gana cupones</button>
+        <button class="juego-btn" onclick="window.location.href='minijuego2.html'">Minijuego 2 - Busca Minas</button>
+        <button class="juego-btn" onclick="window.location.href='minijuego3.html'">Minijuego 3 - Paciencia</button>
+        <button class="juego-btn" onclick="window.location.href='menujuegos.html'">PROXIMAMENTE!!</button>
+        <!-- Aquí puedes agregar más juegos como este: -->
+        <!-- <button class="juego-btn" onclick="window.location.href='minijuego2.html'">Minijuego 2</button> -->
+
+        <button class="juego-btn volver-btn" onclick="window.location.href='index.html'">⬅ Volver al Inicio</button>
+    </div>
+</body>
+</html>

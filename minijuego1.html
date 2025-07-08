@@ -5,174 +5,187 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Minijuego de Cupones</title>
   <link rel="icon" href="imagenes/favicon.png" type="image/png">
-  <style>
-    body {
-      font-family: 'Arial', sans-serif;
-      background-image: url('imagenes/suerte.png');
-      background-size: cover;
-      background-repeat: no-repeat;
-      background-position: center;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: start;
-      padding: 40px 20px;
-      position: relative;
-      min-height: 100vh;
-    }
 
-    h1 {
-      color: #333;
-      margin-bottom: 20px;
-      text-align: center;
-      background-color: rgba(255, 255, 255, 0.8);
-      padding: 10px 20px;
-      border-radius: 12px;
-    }
+<style>
+  body {
+    font-family: 'Arial', sans-serif;
+    background-image: url('imagenes/suerte.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: start;
+    padding: 40px 20px;
+    position: relative;
+    min-height: 100vh;
+  }
 
-    #jugarBtn {
-      padding: 15px 30px;
-      font-size: 18px;
-      background: linear-gradient(135deg, #28a745, #218838);
-      color: white;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
+  h1 {
+    color: #333;
+    margin-bottom: 20px;
+    text-align: center;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 10px 20px;
+    border-radius: 12px;
+  }
 
-    #jugarBtn:disabled {
-      background: #aaa;
-      cursor: not-allowed;
-    }
+  /* Espaciado general para todos los botones no flotantes */
+  button {
+    margin: 10px 0;
+  }
 
-    #contadorRestante {
-      margin-top: 10px;
-      font-size: 16px;
-      font-weight: bold;
-      color: #ff5722;
-      background-color: rgba(255, 255, 255, 0.8);
-      padding: 8px 16px;
-      border-radius: 10px;
-      display: none;
-    }
+  #jugarBtn {
+    padding: 15px 30px;
+    font-size: 18px;
+    background: linear-gradient(135deg, #28a745, #218838);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
 
-    .resultado {
-      margin-top: 30px;
-      padding: 20px;
-      border-radius: 12px;
-      text-align: center;
-      max-width: 400px;
-      background-color: rgba(255, 255, 255, 0.9);
-    }
+  #jugarBtn:disabled {
+    background: #aaa;
+    cursor: not-allowed;
+  }
 
-    .cupon {
-      background-color: #e0ffe0;
-      border: 2px dashed #28a745;
-    }
+  #contadorRestante {
+    margin-top: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #ff5722;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 8px 16px;
+    border-radius: 10px;
+    display: none;
+  }
 
-    .no-cupon {
-      background-color: #ffe0e0;
-      border: 2px dashed #dc3545;
-    }
+  .resultado {
+    margin-top: 30px;
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    max-width: 400px;
+    background-color: rgba(255, 255, 255, 0.9);
+  }
 
-    input[type="text"] {
-      margin-top: 15px;
-      padding: 10px;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      width: 80%;
-    }
+  .cupon {
+    background-color: #e0ffe0;
+    border: 2px dashed #28a745;
+  }
 
-    button.aceptarBtn {
-      margin-top: 15px;
-      padding: 10px 20px;
-      font-size: 16px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-      background-color: #007bff;
-      color: white;
-    }
+  .no-cupon {
+    background-color: #ffe0e0;
+    border: 2px dashed #dc3545;
+  }
 
-    .fecha, .info-vencimiento {
-      margin-top: 10px;
-      font-size: 14px;
-      color: #333;
-    }
+  input[type="text"] {
+    margin-top: 15px;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    width: 80%;
+  }
 
-    .cupon-final {
-      margin-top: 20px;
-      padding: 20px;
-      background-color: #fff5cc;
-      border: 2px dashed #ffc107;
-      border-radius: 10px;
-      text-align: center;
-    }
+  button.aceptarBtn {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    background-color: #007bff;
+    color: white;
+  }
 
-    .cupon-final h2 {
-      color: #ff9800;
-    }
+  .fecha,
+  .info-vencimiento {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #333;
+  }
 
-    .cupon-final p {
-      font-size: 16px;
-      color: #444;
-    }
+  .cupon-final {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #fff5cc;
+    border: 2px dashed #ffc107;
+    border-radius: 10px;
+    text-align: center;
+  }
 
-    .volverBtnFlotante {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      padding: 12px 20px;
-      font-size: 16px;
-      border: none;
-      border-radius: 50px;
-      background-color: #6c757d;
-      color: white;
-      cursor: pointer;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-      z-index: 1000;
-    }
+  .cupon-final h2 {
+    color: #ff9800;
+  }
 
-    .volverBtnFlotante:hover {
-      background-color: #5a6268;
-    }
+  .cupon-final p {
+    font-size: 16px;
+    color: #444;
+  }
 
-    .ayudaBtn {
-      position: fixed;
-      bottom: 90px;
-      right: 20px;
-      padding: 12px 18px;
-      font-size: 16px;
-      border: none;
-      border-radius: 50px;
-      background-color: #17a2b8;
-      color: white;
-      cursor: pointer;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-      z-index: 1000;
-    }
+  .volverBtnFlotante {
+    position: fixed;
+    bottom: 10px;
+    right: 20px;
+    padding: 12px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 50px;
+    background-color: #6c757d;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+  }
 
-    .ayudaBtn:hover {
-      background-color: #138496;
-    }
+  .volverBtnFlotante:hover {
+    background-color: #5a6268;
+  }
 
-    .ayudaTexto {
-      position: fixed;
-      bottom: 150px;
-      right: 20px;
-      background-color: white;
-      border: 1px solid #ccc;
-      padding: 15px;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-      max-width: 300px;
-      display: none;
-      z-index: 1001;
-    }
-  </style>
+  .ayudaBtn {
+    position: fixed;
+    bottom: 110px;
+    right: 20px;
+    padding: 12px 18px;
+    font-size: 16px;
+    border: none;
+    border-radius: 50px;
+    background-color: #17a2b8;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+  }
+
+  .ayudaBtn:hover {
+    background-color: #138496;
+  }
+
+  .ayudaTexto {
+    position: fixed;
+    bottom: 150px;
+    right: 20px;
+    background-color: white;
+    border: 1px solid #ccc;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    max-width: 300px;
+    display: none;
+    z-index: 1001;
+    margin-bottom: 20px;
+  }
+</style>
+
+
 </head>
 <body>
   <h1>🎁 Gira y gana por un cupón de descuento</h1>
@@ -196,6 +209,7 @@
   </div>
 
   <button class="ayudaBtn" onclick="toggleAyuda()">❔ Ayuda</button>
+  <button class="volverBtnFlotante" style="bottom: 60px;" onclick="location.href='menujuegos.html'">🎮 Menú de Juegos</button>
   <button class="volverBtnFlotante" onclick="location.href='index.html'">🏠 Volver a Inicio</button>
 
   <!-- Scripts Firebase -->
