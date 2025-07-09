@@ -14,6 +14,7 @@
       text-align: center;
       margin: 0;
       padding: 20px;
+      padding-bottom: 220px; /* Espacio extra para los botones flotantes */
     }
 
     h1 {
@@ -196,6 +197,7 @@
       <li>Si descubres 14 celdas: 5%, 17: 10%, 20: 15%.</li>
       <li>Si descubres una 💣, pierdes.</li>
       <li>Si ganas, escribe tu nombre y se generará un cupón con tu nombre para que tomes captura.</li>
+      <li>LOS CUPONES NO SON ACUMULABLES!!.</li>
     </ul>
   </div>
 
@@ -334,7 +336,7 @@
       const vence = new Date(hoy.getTime() + 2 * 86400000).toLocaleDateString();
       const texto = `Ganaste un ${premioActual}% de descuento`;
 
-      db.ref("cupones/ganados").push({ nombre, texto, fecha, vence });
+      db.ref("cupones/ganados").push({ nombre, texto, juego: "Buscaminas", fecha, vence });
 
       cuponFinal.style.display = "block";
       nombreForm.style.display = "none";
@@ -342,6 +344,7 @@
         <div class="cupon-final">
           <h2>🎫 Cupón de Descuento</h2>
           <p><strong>${texto}</strong></p>
+          <p>Juego: <strong>Buscaminas</strong></p>
           <p>Nombre: <strong>${nombre}</strong></p>
           <p>📅 Emitido: ${fecha}</p>
           <p>⏳ Válido hasta: ${vence}</p>

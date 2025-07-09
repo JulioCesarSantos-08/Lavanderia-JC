@@ -28,7 +28,7 @@
       background: url('imagenes/lavadora.png') center/contain no-repeat;
     }
 
-    #timer, #timer2 {
+    #timer, #timer2, #proximoIntento {
       font-size: 2em;
       margin: 15px;
       font-weight: bold;
@@ -124,6 +124,7 @@
   <button id="sacarBtn">¡Sacar ropa ahora!</button>
   <div id="timer2"></div>
 
+  <div id="proximoIntento"></div>
   <div id="status"></div>
   <div id="cuponFinal"></div>
 
@@ -135,8 +136,9 @@
       <li>Cuando termine, tendrás 5 minutos para sacar la ropa.</li>
       <li>Si no lo haces a tiempo, pierdes.</li>
       <li>Si sacas la ropa a tiempo, recibirás un cupón (5%, 10%, o 15%).</li>
-      <li>¡Solo puedes jugar una vez cada 24 horas por dispositivo!</li>
+      <li>¡Solo puedes jugar una vez cada 24 horas!</li>
       <li>Después de ganar, escribe tu nombre para generar el cupón y tomarle captura.</li>
+      <li>LOS CUPONES NO SON ACUMULABLES!!.</li>
     </ul>
   </div>
 
@@ -162,7 +164,7 @@
     }
 
     function setWithExpiry(key, val, ttl) {
-      const item = { value: val, expiry: Date.now()+ttl };
+      const item = { value: val, expiry: Date.now() + ttl };
       localStorage.setItem(key, JSON.stringify(item));
     }
 
@@ -175,7 +177,7 @@
           localStorage.removeItem(key);
           return null;
         }
-        return item.value;
+        return item;
       } catch { return null; }
     }
 
@@ -185,10 +187,12 @@
     const timer2El = document.getElementById("timer2");
     const status = document.getElementById("status");
     const cuponFinal = document.getElementById("cuponFinal");
+    const lavadora = document.getElementById("lavadora");
+    const proximoIntento = document.getElementById("proximoIntento");
 
-    let t1, t2;
-    const washDuration = 36*60;
-    const grace = 5*60;
+    let t1, t2, countdownInterval;
+    const washDuration = 36 * 60;
+    const grace = 5 * 60;
     const playKey = "minijuego3_last";
 
     function puedeJugar() {
@@ -201,9 +205,10 @@
         return;
       }
 
-      setWithExpiry(playKey, true, 24*60*60*1000);
+      setWithExpiry(playKey, true, 24 * 60 * 60 * 1000);
       iniciarBtn.disabled = true;
       status.textContent = "Lavando... ⏳";
+      lavadora.style.backgroundImage = "url('imagenes/lavando.gif')";
       let tiempo = washDuration;
       timerEl.textContent = formatTime(tiempo);
 
@@ -212,6 +217,7 @@
         timerEl.textContent = formatTime(tiempo);
         if (tiempo <= 0) {
           clearInterval(t1);
+          lavadora.style.backgroundImage = "url('imagenes/lavadora.png')";
           status.textContent = "¡Lavado completo! Saca la ropa en 5 min.";
           sacarBtn.style.display = "inline-block";
           empezarGracia();
@@ -249,7 +255,7 @@
 
       const hoy = new Date();
       const fecha = hoy.toLocaleDateString();
-      const vence = new Date(Date.now() + 2*24*3600*1000).toLocaleDateString();
+      const vence = new Date(Date.now() + 2 * 24 * 3600 * 1000).toLocaleDateString();
 
       cuponFinal.innerHTML = `
         <div class="cupon-final">
@@ -273,8 +279,30 @@
       ayuda.style.display = ayuda.style.display === "block" ? "none" : "block";
     }
 
+    function actualizarProximoIntento() {
+      const item = getWithExpiry(playKey);
+      if (!item) {
+        proximoIntento.textContent = "";
+        return;
+      }
+
+      const intervalo = setInterval(() => {
+        const falta = item.expiry - Date.now();
+        if (falta <= 0) {
+          proximoIntento.textContent = "";
+          clearInterval(intervalo);
+        } else {
+          const h = Math.floor(falta / 3600000);
+          const m = Math.floor((falta % 3600000) / 60000);
+          const s = Math.floor((falta % 60000) / 1000);
+          proximoIntento.textContent = `⏳ Próximo intento disponible en: ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        }
+      }, 1000);
+    }
+
     iniciarBtn.addEventListener("click", iniciarLavado);
     sacarBtn.addEventListener("click", sacar);
+    actualizarProximoIntento();
   </script>
 </body>
 </html>
