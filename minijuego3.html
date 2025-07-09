@@ -21,11 +21,16 @@
       border-radius: 10px;
     }
 
+    .contenido-juego {
+      position: relative;
+      z-index: 1;
+    }
+
     #lavadora {
       margin: 20px auto;
       width: 200px;
       height: 200px;
-      background: url('imagenes/lavadora.png') center/contain no-repeat;
+      background: url('imagenes/lavadora3.png') center/contain no-repeat;
     }
 
     #timer, #timer2, #proximoIntento {
@@ -116,17 +121,19 @@
   </style>
 </head>
 <body>
-  <h1>Lavadora – ¡saca a tiempo tu ropa!</h1>
-  <div id="lavadora"></div>
+  <div class="contenido-juego">
+    <h1>Lavadora – ¡saca a tiempo tu ropa!</h1>
+    <div id="lavadora"></div>
 
-  <button id="iniciarBtn">Iniciar lavado (36 min)</button>
-  <div id="timer"></div>
-  <button id="sacarBtn">¡Sacar ropa ahora!</button>
-  <div id="timer2"></div>
+    <button id="iniciarBtn">Iniciar lavado (36 min)</button>
+    <div id="timer"></div>
+    <button id="sacarBtn">¡Sacar ropa ahora!</button>
+    <div id="timer2"></div>
 
-  <div id="proximoIntento"></div>
-  <div id="status"></div>
-  <div id="cuponFinal"></div>
+    <div id="proximoIntento"></div>
+    <div id="status"></div>
+    <div id="cuponFinal"></div>
+  </div>
 
   <div class="ayudaTexto" id="ayudaTexto">
     <strong>¿Cómo jugar?</strong>
@@ -138,7 +145,7 @@
       <li>Si sacas la ropa a tiempo, recibirás un cupón (5%, 10%, o 15%).</li>
       <li>¡Solo puedes jugar una vez cada 24 horas!</li>
       <li>Después de ganar, escribe tu nombre para generar el cupón y tomarle captura.</li>
-      <li>LOS CUPONES NO SON ACUMULABLES!!.</li>
+      <li>LOS CUPONES NO SON ACUMULABLES!!</li>
     </ul>
   </div>
 
