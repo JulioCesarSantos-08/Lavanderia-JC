@@ -98,28 +98,26 @@
         }
 
         .social a {
-    display: inline-block;
-    margin: 8px 5px;
-    padding: 10px 15px;
-  
-    color: white;
-    text-decoration: none;
-    border-radius: 8px;
-    transition: background-color 0.3s;
-}
+            display: inline-block;
+            margin: 8px 5px;
+            padding: 10px 15px;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: background-color 0.3s;
+        }
 
-.social a:hover {
-    background-color: #0056b3;
-}
+        .social a:hover {
+            background-color: #0056b3;
+        }
 
-.social a.foro {
-    background-color: #00cfff; /* Celeste */
-    color: white;
-}
-.social a.foro:hover {
-    background-color: #3765fa; /* Celeste oscuro al pasar el mouse */
-}
-
+        .social a.foro {
+            background-color: #00cfff;
+            color: white;
+        }
+        .social a.foro:hover {
+            background-color: #3765fa;
+        }
     </style>
 </head>
 <body>
@@ -185,10 +183,19 @@
 
         function incrementarLike() {
             const btn = document.getElementById("like-btn");
+
+            if (localStorage.getItem("yaDioLike") === "true") {
+                alert("Ya diste like desde este dispositivo. ¡Gracias!");
+                return;
+            }
+
             btn.classList.add("clicked");
 
-            // Agrega 1 al contador en Firebase
+            // Incrementa en Firebase
             likesRef.transaction(current => (current || 0) + 1);
+
+            // Guarda en localStorage
+            localStorage.setItem("yaDioLike", "true");
 
             setTimeout(() => {
                 btn.classList.remove("clicked");
@@ -200,10 +207,8 @@
                 document.querySelector(".loader-container").style.display = "none";
                 document.querySelector(".content").style.visibility = "visible";
 
-                // Actualiza el contador inicial
                 actualizarContador();
 
-                // Escucha cambios en tiempo real
                 likesRef.on("value", snapshot => {
                     const count = snapshot.val() || 0;
                     const countElement = document.getElementById("like-count");
@@ -212,12 +217,10 @@
                     }
                 });
 
-                // Asigna el evento al botón después de cargar todo
                 const likeButton = document.getElementById("like-btn");
                 likeButton.onclick = incrementarLike;
             }, 2000);
         };
     </script>
-    
 </body>
 </html>
