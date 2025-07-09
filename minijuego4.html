@@ -6,25 +6,79 @@
   <title>Minijuego 4 − Rompecabezas</title>
   <link rel="icon" href="imagenes/favicon.png" type="image/png">
   <style>
-    body { font-family: Arial; text-align:center; padding:20px;
-      background: url('imagenes/juego4.png') center/cover; }
-    h1 { background:rgba(255,255,255,0.8); padding:15px; border-radius:10px;}
-    #puzzle { margin:20px auto; display:grid; grid-template: repeat(4,80px)/repeat(4,80px); gap:4px; }
-    .tile { background:#eee; display:flex; justify-content:center; align-items:center;
-      font-size:1.8em; cursor:pointer; user-select:none; }
-    .empty { background:transparent; cursor:default; }
-    #timer { font-size:1.5em; font-weight:bold; margin:10px; }
-    #status,#cuponFinal { margin:20px; font-size:1.2em; }
-    .cupon-final { padding:20px; background:#fff5cc; border:2px dashed #ffc107;
-      border-radius:10px; display:inline-block; text-align:left;}
-    .float-btn { position:fixed; border:none; padding:12px 20px;
-      font-size:16px; border-radius:50px; color:white; cursor:pointer; z-index:1000; }
-    .volverBtn{bottom:20px; right:20px; background:#6c757d;}
-    .menuBtn{bottom:70px; right:20px; background:#ffc107; color:#000;}
-    .ayudaBtn{bottom:120px; right:20px; background:#17a2b8;}
-    .ayudaTexto{position:fixed; bottom:170px; right:20px; background:white;
-      border:1px solid #ccc; padding:15px; border-radius:10px;
-      box-shadow:0 4px 8px rgba(0,0,0,0.2); max-width:300px; display:none; text-align:left; }
+    body {
+      font-family: Arial; text-align:center; padding:20px;
+      background: url('imagenes/juego4.png') center/cover;
+      padding-bottom: 200px; /* Espacio para que botones flotantes no se encimen */
+    }
+    h1 {
+      background:rgba(255,255,255,0.8);
+      padding:15px;
+      border-radius:10px;
+    }
+    #puzzle {
+      margin:20px auto;
+      display:grid;
+      grid-template: repeat(4,80px)/repeat(4,80px);
+      gap:4px;
+    }
+    .tile {
+      background:#eee;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      font-size:1.8em;
+      cursor:pointer;
+      user-select:none;
+    }
+    .empty {
+      background:transparent;
+      cursor:default;
+    }
+    #timer {
+      font-size:1.5em;
+      font-weight:bold;
+      margin:10px;
+    }
+    #status, #cuponFinal {
+      margin:20px;
+      font-size:1.2em;
+    }
+    .cupon-final {
+      padding:20px;
+      background:#fff5cc;
+      border:2px dashed #ffc107;
+      border-radius:10px;
+      display:inline-block;
+      text-align:left;
+    }
+    .float-btn {
+      position:fixed;
+      border:none;
+      padding:12px 20px;
+      font-size:16px;
+      border-radius:50px;
+      color:white;
+      cursor:pointer;
+      z-index:1000;
+    }
+    .volverBtn { bottom:20px; right:20px; background:#6c757d; }
+    .menuBtn   { bottom:70px; right:20px; background:#ffc107; color:#000; }
+    .ayudaBtn  { bottom:120px; right:20px; background:#17a2b8; }
+    .ayudaTexto {
+      position:fixed;
+      bottom:170px;
+      right:20px;
+      background:white;
+      border:1px solid #ccc;
+      padding:15px;
+      border-radius:10px;
+      box-shadow:0 4px 8px rgba(0,0,0,0.2);
+      max-width:300px;
+      display:none;
+      text-align:left;
+      z-index: 1001;
+    }
   </style>
 </head>
 <body>
@@ -90,7 +144,9 @@
 
     function isSolvable(arr){
       let inv=0;
-      for(let i=0;i<15;i++)for(let j=i+1;j<16;j++)if(arr[i] && arr[j] && arr[i]>arr[j])inv++;
+      for(let i=0;i<15;i++)
+        for(let j=i+1;j<16;j++)
+          if(arr[i] && arr[j] && arr[i]>arr[j]) inv++;
       const row = Math.floor(arr.indexOf(null)/4);
       return (inv + row)%2 === 0;
     }
