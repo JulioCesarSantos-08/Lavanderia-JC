@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Minijuego 4 − Rompecabezas</title>
+  <link rel="icon" href="imagenes/favicon.png" type="image/png">
+  <style>
+    body { font-family: Arial; text-align:center; padding:20px;
+      background: url('imagenes/juego4.png') center/cover; }
+    h1 { background:rgba(255,255,255,0.8); padding:15px; border-radius:10px;}
+    #puzzle { margin:20px auto; display:grid; grid-template: repeat(4,80px)/repeat(4,80px); gap:4px; }
+    .tile { background:#eee; display:flex; justify-content:center; align-items:center;
+      font-size:1.8em; cursor:pointer; user-select:none; }
+    .empty { background:transparent; cursor:default; }
+    #timer { font-size:1.5em; font-weight:bold; margin:10px; }
+    #status,#cuponFinal { margin:20px; font-size:1.2em; }
+    .cupon-final { padding:20px; background:#fff5cc; border:2px dashed #ffc107;
+      border-radius:10px; display:inline-block; text-align:left;}
+    .float-btn { position:fixed; border:none; padding:12px 20px;
+      font-size:16px; border-radius:50px; color:white; cursor:pointer; z-index:1000; }
+    .volverBtn{bottom:20px; right:20px; background:#6c757d;}
+    .menuBtn{bottom:70px; right:20px; background:#ffc107; color:#000;}
+    .ayudaBtn{bottom:120px; right:20px; background:#17a2b8;}
+    .ayudaTexto{position:fixed; bottom:170px; right:20px; background:white;
+      border:1px solid #ccc; padding:15px; border-radius:10px;
+      box-shadow:0 4px 8px rgba(0,0,0,0.2); max-width:300px; display:none; text-align:left; }
+  </style>
+</head>
+<body>
+  <h1>Rompecabezas Deslizante – ¡Arma el 4x4!</h1>
+  <div id="timer">Tiempo: 00:00</div>
+  <div id="puzzle"></div>
+  <div id="status"></div>
+  <div id="cuponFinal"></div>
+
+  <div class="ayudaTexto" id="ayudaTexto">
+    <strong>¿Cómo jugar?</strong>
+    <ul>
+      <li>Desliza las piezas para ordenar del 1 al 15.</li>
+      <li>Si lo armas en ≤ 2 min obtienes <strong>15%</strong>.</li>
+      <li>Si es ≤ 4 min obtienes <strong>10%</strong>.</li>
+      <li>Si es ≤ 5 min obtienes <strong>5%</strong>.</li>
+      <li>Si tardas más, no hay descuento.</li>
+      <li>Al completar, ingresa tu nombre para generar el cupón.</li>
+      <li>Cupon listo para captura.</li>
+    </ul>
+  </div>
+
+  <button class="float-btn ayudaBtn" onclick="toggleAyuda()">❓ Ayuda</button>
+  <button class="float-btn menuBtn" onclick="location.href='menujuegos.html'">🎮 Menú Juegos</button>
+  <button class="float-btn volverBtn" onclick="location.href='index.html'">🏠 Inicio</button>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey:"AIzaSyCwBZMUnQ6rH3APMo4kXDiDvg_u7Zsud9w",
+      authDomain:"lavanderia-nueva.firebaseapp.com",
+      databaseURL:"https://lavanderia-nueva-default-rtdb.firebaseio.com",
+      projectId:"lavanderia-nueva",
+      storageBucket:"lavanderia-nueva.appspot.com",
+      messagingSenderId:"1074532951",
+      appId:"1:1074532951:web:311703f9f5441d11240912"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const puzzleEl = document.getElementById('puzzle');
+    const timerEl = document.getElementById('timer');
+    const status = document.getElementById('status');
+    const cuponFinal = document.getElementById('cuponFinal');
+    let startTime, timerId;
+
+    let grid = [], emptyIdx = 15;
+
+    init();
+
+    function init(){
+      grid = [...Array(15).keys()].map(i=>i+1).concat(null);
+      shuffle(grid);
+      render();
+      startTime = Date.now();
+      timerId = setInterval(updateTimer, 1000);
+    }
+
+    function shuffle(arr){
+      do { arr.sort(()=>Math.random()-0.5); } while (!isSolvable(arr));
+    }
+
+    function isSolvable(arr){
+      let inv=0;
+      for(let i=0;i<15;i++)for(let j=i+1;j<16;j++)if(arr[i] && arr[j] && arr[i]>arr[j])inv++;
+      const row = Math.floor(arr.indexOf(null)/4);
+      return (inv + row)%2 === 0;
+    }
+
+    function render(){
+      puzzleEl.innerHTML='';
+      grid.forEach((val,i)=>{
+        const tile = document.createElement('div');
+        tile.className = 'tile';
+        if(!val) { tile.classList.add('empty'); emptyIdx = i; }
+        else tile.textContent = val;
+        tile.addEventListener('click',()=>move(i));
+        puzzleEl.appendChild(tile);
+      });
+    }
+
+    function move(idx){
+      const r1 = Math.floor(idx/4), c1 = idx%4;
+      const r2 = Math.floor(emptyIdx/4), c2 = emptyIdx%4;
+      if(Math.abs(r1-r2)+Math.abs(c1-c2)===1){
+        [grid[emptyIdx],grid[idx]]=[grid[idx],grid[emptyIdx]];
+        emptyIdx = idx;
+        render();
+        checkWin();
+      }
+    }
+
+    function updateTimer(){
+      const d = Math.floor((Date.now()-startTime)/1000);
+      const m = String(Math.floor(d/60)).padStart(2,'0');
+      const s = String(d%60).padStart(2,'0');
+      timerEl.textContent = `Tiempo: ${m}:${s}`;
+    }
+
+    function checkWin(){
+      if(grid.every((v,i)=> (i===15 && v===null) || v===i+1)){
+        clearInterval(timerId);
+        handleWin();
+      }
+    }
+
+    function handleWin(){
+      const d = Math.floor((Date.now()-startTime)/1000)/60;
+      let pct = 0;
+      if(d<=2) pct=15;
+      else if(d<=4) pct=10;
+      else if(d<=5) pct=5;
+      status.textContent = `¡Completaste en ${d.toFixed(2)} min!`;
+      getCoupon(pct);
+    }
+
+    function getCoupon(pct){
+      const nombre=prompt(`Ganaste ${pct}% de descuento! Ingresa tu nombre:`);
+      if(!nombre) return;
+      const hoy=new Date(), f=hoy.toLocaleDateString();
+      const vence=new Date(Date.now()+2*86400000).toLocaleDateString();
+      cuponFinal.innerHTML = `
+        <div class="cupon-final">
+          <h2>🎛 Cupón ${pct}%</h2>
+          <p>Juego: <strong>Rompecabezas Deslizante</strong></p>
+          <p>Nombre: <strong>${nombre}</strong></p>
+          <p>🗓 Emitido: ${f}</p>
+          <p>⏳ Válido hasta: ${vence}</p>
+          <p>¡Tómale captura!</p>
+        </div>`;
+      db.ref('cupones/ganados').push({nombre, pct, juego:"Rompecabezas Deslizante", f, vence});
+    }
+
+    function toggleAyuda(){
+      const a = document.getElementById('ayudaTexto');
+      a.style.display = a.style.display==='block' ? 'none' : 'block';
+    }
+  </script>
+</body>
+</html>
