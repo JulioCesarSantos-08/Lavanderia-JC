@@ -34,14 +34,13 @@
     }
 
     #game {
-      display: none;
-      margin: auto;
-      max-width: 400px;
-      display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      gap: 8px;
-      margin-top: 20px;
-    }
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  margin: 20px auto 0 auto;
+  max-width: 400px;
+  padding-right: 120px; /* espacio para botones flotantes */
+}
 
     .cell {
       perspective: 1000px;
