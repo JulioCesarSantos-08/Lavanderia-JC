@@ -531,7 +531,8 @@ function exportarAExcel() {
           Entrega: recibo.fechaEntrega + ' ' + recibo.horaEntrega,
           Ropa: recibo.ropaEntregada,
           "Lavadas acumuladas": recibo.lavadas,
-          Estado: recibo.estado || "pendiente"
+          Estado: recibo.estado || "pendiente",
+          "Metodo de Pago": recibo.metodoPago || "No especificado"
         });
       });
 
