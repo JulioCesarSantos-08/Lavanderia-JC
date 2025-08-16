@@ -96,6 +96,13 @@
             height: auto;
             margin-right: 5px;
         }
+
+        /* 🔴 Estilo especial para el estado del pago */
+        .estado-pago {
+            color: red;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
     </style>
 
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
@@ -196,13 +203,11 @@
             }
 
             let mensajeLavadas = "";
-            if (lavadas <= 2) {
+            if (lavadas <= 3) {
                 mensajeLavadas = "Sigue acumulando lavadas";
-            } else if (lavadas <= 4) {
-                mensajeLavadas = "¡Continua tu racha!";
-            } else if (lavadas <= 6) {
-                mensajeLavadas = "¡Casi obtienes tu descuento!";    
-            } else if (lavadas >= 7) {
+            } else if (lavadas <= 5) {
+                mensajeLavadas = "¡Casi obtienes tu descuento!";
+            } else if (lavadas >= 6) {
                 mensajeLavadas = "🎉 ¡Felicidades! Conseguiste 50% de descuento 🎉";
             }
 
@@ -211,20 +216,20 @@
             document.getElementById("recibo").innerHTML = `
                 <h2>Gracias por visitar Lavandería JC.</h2>
                 <h3>Nosotros nos preocupamos por tus prendas.</h3>
-                 <h4 style="color: red;">"Usted acepta que, presentarà este recibo para recibir su ropa. Sin èl NO debemos entregarla. Gracias".</h4>
+                <h4 style="color: red;">"Usted acepta que, presentarà este recibo para recibir su ropa. Sin èl NO debemos entregarla. Gracias".</h4>
                 <p>Tu recibo del día de hoy es:</p>
                 <p><strong>Folio:</strong> <span class="folio">${folio}</span></p>
                 <p><strong>Cliente:</strong> ${cliente}</p>
                 <p><strong>Total:</strong> <span class="total">$${total}</span></p>
-                <p><strong>Estado del pago:</strong> ${estado}</p>
                 <p><strong>Servicio:</strong> ${servicio}</p>
                 <p><strong>Kilos:</strong> ${kilos} kg</p>
                 <p><strong>Ropa:</strong> ${ropaEntregada}</p>
+                <p><strong>Estado del pago:</strong> <span class="estado-pago">${estado}</span></p>
                 <p>La Fecha y Hora en la que puedes pasar por tu ropa es:</p>
                 <p><strong>Entrega:</strong> ${fechaEntrega}</p>
                 <p><strong>Hora:</strong> ${horaEntrega}</p>
-                <p><strong>${mensajeLavadas}</strong></p>
                 <div class="lavadoras-contenedor">${lavadorasHTML}</div>
+                <p><strong>${mensajeLavadas}</strong></p>
             `;
 
             document.getElementById("recibo").classList.remove("hidden");
