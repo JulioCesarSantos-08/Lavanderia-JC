@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registros de Ropa - Lavandería JC</title>
+    <link rel="icon" type="image/png" href="Imagenes/favicon.png" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #0099cc, #006699);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .logo {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .logo img {
+            width: 120px;
+            height: auto;
+        }
+
+        h1 {
+            margin-top: 10px;
+            font-size: 26px;
+            text-align: center;
+            color: #fff;
+        }
+
+        .contenedor {
+            background: rgba(255, 255, 255, 0.95);
+            color: black;
+            padding: 20px;
+            border-radius: 15px;
+            width: 95%;
+            max-width: 1100px;
+            margin-top: 20px;
+            box-shadow: 0px 4px 8px rgba(0,0,0,0.3);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        th {
+            background: #0099cc;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background: #f2f2f2;
+        }
+
+        tr:hover {
+            background: #d1ecf1;
+        }
+
+        .botones {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .botones button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            background: #0099cc;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .botones button:hover {
+            background: #0077aa;
+        }
+
+        .regresar {
+            background: #666;
+        }
+
+        .regresar:hover {
+            background: #444;
+        }
+    </style>
+</head>
+<body>
+    <div class="logo">
+        <img src="Imagenes/favicon.png" alt="Logo Lavandería JC">
+        <h1>Registros de Clientes</h1>
+    </div>
+
+    <div class="contenedor">
+        <table id="registrosTabla">
+            <thead>
+                <tr>
+                    <th>Cliente</th>
+                    <th>👕 Playeras</th>
+                    <th>👔 Camisas</th>
+                    <th>👖 Pantalones</th>
+                    <th>🩳 Shorts</th>
+                    <th>👟 Tenis</th>
+                    <th>🧥 Sudaderas</th>
+                    <th>🛏️ Sábanas/Cobertores</th>
+                    <th>🧺 Otros</th>
+                    <th>📅 Fecha</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Aquí se insertarán los registros automáticamente -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="botones">
+        <button class="regresar" onclick="window.location.href='index.html'">Inicio</button>
+    </div>
+
+    <!-- Firebase (usar módulos de v9) -->
+    <script type="module">
+        // Importar Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+
+        // Configuración Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCwBZMUnQ6rH3APMo4kXDiDvg_u7Zsud9w",
+            authDomain: "lavanderia-nueva.firebaseapp.com",
+            databaseURL: "https://lavanderia-nueva-default-rtdb.firebaseio.com",
+            projectId: "lavanderia-nueva",
+            storageBucket: "lavanderia-nueva.firebasestorage.app",
+            messagingSenderId: "1074532951",
+            appId: "1:1074532951:web:311703f9f5441d11240912"
+        };
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Referencia a los formularios
+        const refFormularios = ref(database, "formularios");
+        const tabla = document.getElementById("registrosTabla").getElementsByTagName("tbody")[0];
+
+        // Escuchar cambios en Firebase
+        onValue(refFormularios, (snapshot) => {
+            tabla.innerHTML = ""; // limpiar tabla
+            snapshot.forEach((childSnapshot) => {
+                const data = childSnapshot.val();
+                let fila = tabla.insertRow();
+
+                fila.insertCell(0).innerText = data.cliente || "-";
+                fila.insertCell(1).innerText = data.playeras || "0";
+                fila.insertCell(2).innerText = data.camisas || "0";
+                fila.insertCell(3).innerText = data.pantalones || "0";
+                fila.insertCell(4).innerText = data.shorts || "0";
+                fila.insertCell(5).innerText = data.tenis || "0";
+                fila.insertCell(6).innerText = data.sudaderas || "0";
+                fila.insertCell(7).innerText = data.sabanas || "0";
+                fila.insertCell(8).innerText = data.otros || "0";
+                fila.insertCell(9).innerText = data.fecha || "-";
+            });
+        });
+    </script>
+</body>
+</html>
