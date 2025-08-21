@@ -105,7 +105,7 @@
             font-weight: bold;
             margin-top: 15px;
             text-align: center;
-            display: block; /* Siempre visible */
+            display: block;
         }
 
         #successMsg {
@@ -114,6 +114,70 @@
             margin-top: 15px;
             text-align: center;
             display: none;
+        }
+
+        /* BOTÓN FLOTANTE */
+        .info-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #ffcc00;
+            color: black;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0px 4px 8px rgba(0,0,0,0.3);
+            transition: 0.3s;
+        }
+
+        .info-btn:hover {
+            background: #e6b800;
+        }
+
+        /* MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            color: black;
+            padding: 20px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            text-align: justify;
+            box-shadow: 0px 4px 10px rgba(0,0,0,0.5);
+        }
+
+        .modal-content h2 {
+            color: #006699;
+            margin-bottom: 10px;
+        }
+
+        .close {
+            float: right;
+            font-size: 22px;
+            font-weight: bold;
+            cursor: pointer;
+            color: red;
+        }
+
+        .close:hover {
+            color: darkred;
         }
     </style>
 </head>
@@ -169,6 +233,32 @@
         </form>
     </div>
 
+    <!-- BOTÓN FLOTANTE -->
+    <button class="info-btn" onclick="openModal()">ℹ️</button>
+
+    <!-- MODAL -->
+    <div id="infoModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Información del Formulario</h2>
+            <p>
+                Este formulario es una herramienta para registrar las prendas entregadas en Lavandería JC.  
+                Su propósito es garantizar que la cantidad de ropa recibida coincida con la cantidad que se devuelve.  
+            </p>
+            <p>
+            <br>🔹 Si el cliente llena el formulario, se asegura que ambas partes tengan un registro transparente.  
+            <br>🔹 Si no lo llena, la lavandería NO se hace responsable de reclamaciones posteriores.  
+            <br>🔹 Ejemplo: Si el cliente dice que entregó 20 playeras y recibe 20, todo coincide. 
+            <p> 
+             Si al contar nosotros registramos 15 y entregamos 15, ese será el comprobante válido.
+            </p>
+            </p>
+            <p style="color:red; font-weight:bold;">
+                🚫 Lavandería JC no lava ropa interior ni calcetines.
+            </p>
+        </div>
+    </div>
+
     <!-- Firebase compat -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
@@ -196,7 +286,6 @@
         form.addEventListener("submit", function(e) {
             e.preventDefault();
 
-            // Datos del formulario
             const data = {
                 cliente: document.getElementById("cliente").value,
                 playeras: document.getElementById("playeras").value,
@@ -219,6 +308,15 @@
             successMsg.style.display = "block";
             form.reset();
         });
+
+        // Modal funciones
+        function openModal() {
+            document.getElementById("infoModal").style.display = "flex";
+        }
+
+        function closeModal() {
+            document.getElementById("infoModal").style.display = "none";
+        }
     </script>
 </body>
 </html>
