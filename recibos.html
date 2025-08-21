@@ -44,14 +44,13 @@
             z-index: 1;
         }
 
-        input, select, button, textarea {
+        input, select, button {
             padding: 10px;
             font-size: 16px;
             border: none;
             border-radius: 5px;
             width: 100%;
             margin: 10px 0;
-            resize: none;
             box-sizing: border-box;
         }
 
@@ -102,6 +101,11 @@
             color: red;
             font-weight: bold;
             font-size: 1.2em;
+        }
+
+        .ropa-formulario label {
+            display: block;
+            margin: 5px 0 2px;
         }
     </style>
 
@@ -167,6 +171,33 @@
             return `${hora12}:${minutos} ${ampm}`;
         }
 
+        // ✅ Función que convierte inputs en texto con emojis
+        function obtenerRopa() {
+            const prendas = [
+                { id: "playeras", emoji: "👕" },
+                { id: "pantalones", emoji: "👖" },
+                { id: "shorts", emoji: "🩳" },
+                { id: "tenis", emoji: "👟" },
+                { id: "camisas", emoji: "👔" },
+                { id: "abrigos", emoji: "🧥" },
+                { id: "calcetines", emoji: "🧦" },
+                { id: "vestidos", emoji: "👗" },
+                { id: "toallas", emoji: "🛁" },
+                { id: "sabanas", emoji: "🛏️" },
+                { id: "cobijas", emoji: "🛌" }
+            ];
+
+            let resultado = [];
+            prendas.forEach(p => {
+                const cantidad = parseInt(document.getElementById(p.id).value) || 0;
+                if (cantidad > 0) {
+                    resultado.push(`${p.emoji} x${cantidad}`);
+                }
+            });
+
+            return resultado.join(" | ");
+        }
+
         function generarRecibo() {
             const cliente = document.getElementById("cliente").value.trim();
             const servicio = document.getElementById("servicio").value;
@@ -177,11 +208,11 @@
             const total = document.getElementById("total").value;
             const fechaEntregaRaw = document.getElementById("fechaEntrega").value;
             const horaEntregaRaw = document.getElementById("horaEntrega").value;
-            const ropaEntregada = document.getElementById("ropaEntregada").value.trim();
             const estado = document.getElementById("estado").value;
             const metodoPago = document.getElementById("metodoPago").value;
+            const ropaEntregada = obtenerRopa();
 
-            if (!folio || !cliente || !servicio || !kilos || isNaN(lavadas) || !fechaIngresoRaw || !total || !fechaEntregaRaw || !horaEntregaRaw || !ropaEntregada || !estado || !metodoPago) {
+            if (!folio || !cliente || !servicio || !kilos || isNaN(lavadas) || !fechaIngresoRaw || !total || !fechaEntregaRaw || !horaEntregaRaw || !estado || !metodoPago) {
                 alert("Por favor, complete todos los campos.");
                 return;
             }
@@ -213,8 +244,6 @@
                 mensajeLavadas = "🎉 ¡Felicidades! Conseguiste 50% de descuento 🎉";
             }
 
-            const metodoPagoTexto = metodoPago === "efectivo" ? "Efectivo" : "Transferencia";
-
             document.getElementById("recibo").innerHTML = `
                 <h2>Gracias por visitar Lavandería JC.</h2>
                 <h3>Nosotros nos preocupamos por tus prendas.</h3>
@@ -226,7 +255,7 @@
                 <p><strong>Estado del pago:</strong> <span class="estado-pago">${estado}</span></p>
                 <p><strong>Servicio:</strong> ${servicio}</p>
                 <p><strong>Kilos:</strong> ${kilos} kg</p>
-                <p><strong>Ropa:</strong> ${ropaEntregada}</p>
+                <p><strong>Ropa:</strong> ${ropaEntregada || "No especificada"}</p>
                 <p>La Fecha y Hora en la que puedes pasar por tu ropa es:</p>
                 <p><strong>Entrega:</strong> ${fechaEntrega}</p>
                 <p><strong>Hora:</strong> ${horaEntrega}</p>
@@ -273,8 +302,41 @@
         <label for="horaEntrega">Hora de entrega:</label>
         <input type="time" id="horaEntrega" required />
 
-        <label for="ropaEntregada">Ropa entregada:</label>
-        <textarea id="ropaEntregada" rows="4" placeholder="Ingresa aquí la descripción de la ropa entregada"></textarea>
+        <h4>Ropa entregada:</h4>
+        <div class="ropa-formulario">
+            <label>👕 Playeras:</label>
+            <input type="number" id="playeras" min="0" value="0">
+
+            <label>👖 Pantalones:</label>
+            <input type="number" id="pantalones" min="0" value="0">
+
+            <label>🩳 Shorts:</label>
+            <input type="number" id="shorts" min="0" value="0">
+
+            <label>👟 Tenis:</label>
+            <input type="number" id="tenis" min="0" value="0">
+
+            <label>👔 Camisas:</label>
+            <input type="number" id="camisas" min="0" value="0">
+
+            <label>🧥 Abrigos:</label>
+            <input type="number" id="abrigos" min="0" value="0">
+
+            <label>🧦 Calcetines:</label>
+            <input type="number" id="calcetines" min="0" value="0">
+
+            <label>👗 Vestidos:</label>
+            <input type="number" id="vestidos" min="0" value="0">
+
+            <label>🛁 Toallas:</label>
+            <input type="number" id="toallas" min="0" value="0">
+
+            <label>🛏️ Sábanas:</label>
+            <input type="number" id="sabanas" min="0" value="0">
+
+            <label>🛌 Cobijas:</label>
+            <input type="number" id="cobijas" min="0" value="0">
+        </div>
 
         <label for="estado">Estado del recibo:</label>
         <select id="estado">
