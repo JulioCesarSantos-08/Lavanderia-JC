@@ -102,6 +102,19 @@
         .regresar:hover {
             background: #444;
         }
+
+        .eliminarBtn {
+            background: red;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .eliminarBtn:hover {
+            background: darkred;
+        }
     </style>
 </head>
 <body>
@@ -124,6 +137,7 @@
                     <th>🛏️ Sábanas/Cobertores</th>
                     <th>🧺 Otros</th>
                     <th>📅 Fecha</th>
+                    <th>🗑️ Eliminar</th>
                 </tr>
             </thead>
             <tbody>
@@ -140,7 +154,7 @@
     <script type="module">
         // Importar Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+        import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
         // Configuración Firebase
         const firebaseConfig = {
@@ -166,6 +180,7 @@
             tabla.innerHTML = ""; // limpiar tabla
             snapshot.forEach((childSnapshot) => {
                 const data = childSnapshot.val();
+                const key = childSnapshot.key;
                 let fila = tabla.insertRow();
 
                 fila.insertCell(0).innerText = data.cliente || "-";
@@ -178,6 +193,17 @@
                 fila.insertCell(7).innerText = data.sabanas || "0";
                 fila.insertCell(8).innerText = data.otros || "0";
                 fila.insertCell(9).innerText = data.fecha || "-";
+
+                // Botón de eliminar
+                const btnEliminar = document.createElement("button");
+                btnEliminar.innerText = "Eliminar";
+                btnEliminar.className = "eliminarBtn";
+                btnEliminar.onclick = () => {
+                    if (confirm("¿Seguro que quieres eliminar este registro?")) {
+                        remove(ref(database, "formularios/" + key));
+                    }
+                };
+                fila.insertCell(10).appendChild(btnEliminar);
             });
         });
     </script>
