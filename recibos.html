@@ -96,7 +96,6 @@
             margin-right: 5px;
         }
 
-        /* 🔴 Estilo especial para el estado del pago */
         .estado-pago {
             color: red;
             font-weight: bold;
@@ -171,7 +170,6 @@
             return `${hora12}:${minutos} ${ampm}`;
         }
 
-        // ✅ Función que convierte inputs en texto con emojis
         function obtenerRopa() {
             const prendas = [
                 { id: "playeras", emoji: "👕" },
@@ -184,7 +182,14 @@
                 { id: "vestidos", emoji: "👗" },
                 { id: "toallas", emoji: "🛁" },
                 { id: "sabanas", emoji: "🛏️" },
-                { id: "cobijas", emoji: "🛌" }
+                { id: "cobijas", emoji: "🛌" },
+                { id: "gorras", emoji: "🧢" },
+                { id: "blusas", emoji: "👚" },
+                { id: "camisetas", emoji: "👕" },
+                { id: "faldas", emoji: "👒" },
+                { id: "chalecos", emoji: "🦺" },
+                { id: "boxers", emoji: "🩲" },
+                { id: "mochilas", emoji: "🎒" }
             ];
 
             let resultado = [];
@@ -237,7 +242,7 @@
             if (lavadas <= 1) {
                 mensajeLavadas = "Sigue acumulando lavadas";
             } else if (lavadas <= 3) {
-                mensajeLavadas = "¡tus lavadas aumentan!";
+                mensajeLavadas = "¡Tus lavadas aumentan!";
             } else if (lavadas <= 5) {
                 mensajeLavadas = "¡Casi obtienes tu descuento!";
             } else if (lavadas >= 7) {
@@ -248,7 +253,6 @@
                 <h2>Gracias por visitar Lavandería JC.</h2>
                 <h3>Nosotros nos preocupamos por tus prendas.</h3>
                 <h4 style="color: red;">"Usted acepta que, presentarà este recibo para recibir su ropa. Sin èl NO debemos entregarla. Gracias".</h4>
-                <p>Tu recibo del día de hoy es:</p>
                 <p><strong>Folio:</strong> <span class="folio">${folio}</span></p>
                 <p><strong>Cliente:</strong> ${cliente}</p>
                 <p><strong>Total:</strong> <span class="total">$${total}</span></p>
@@ -256,7 +260,6 @@
                 <p><strong>Servicio:</strong> ${servicio}</p>
                 <p><strong>Kilos:</strong> ${kilos} kg</p>
                 <p><strong>Ropa:</strong> ${ropaEntregada || "No especificada"}</p>
-                <p>La Fecha y Hora en la que puedes pasar por tu ropa es:</p>
                 <p><strong>Entrega:</strong> ${fechaEntrega}</p>
                 <p><strong>Hora:</strong> ${horaEntrega}</p>
                 <div class="lavadoras-contenedor">${lavadorasHTML}</div>
@@ -336,6 +339,27 @@
 
             <label>🛌 Cobijas:</label>
             <input type="number" id="cobijas" min="0" value="0">
+
+            <label>🧢 Gorras:</label>
+            <input type="number" id="gorras" min="0" value="0">
+
+            <label>👚 Blusas:</label>
+            <input type="number" id="blusas" min="0" value="0">
+
+            <label>👕 Camisetas:</label>
+            <input type="number" id="camisetas" min="0" value="0">
+
+            <label>👒 Faldas:</label>
+            <input type="number" id="faldas" min="0" value="0">
+
+            <label>🦺 Chalecos:</label>
+            <input type="number" id="chalecos" min="0" value="0">
+
+            <label>🎒 Mochilas:</label>
+            <input type="number" id="mochilas" min="0" value="0">
+            
+            <label>🩲 Boxers:</label>
+            <input type="number" id="boxers" min="0" value="0">
         </div>
 
         <label for="estado">Estado del recibo:</label>
