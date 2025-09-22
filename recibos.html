@@ -4,7 +4,7 @@
     <link rel="icon" type="image/png" href="imagenes/favicon.png" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Crear Recibos - Lavandería</title>
+    <title>Crear Recibos - Lavandería JC</title>
     <style>
         body {
             margin: 0;
@@ -112,6 +112,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
 
     <script>
+        // Configuración Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyCwBZMUnQ6rH3APMo4kXDiDvg_u7Zsud9w",
             authDomain: "lavanderia-nueva.firebaseapp.com",
@@ -125,15 +126,39 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        window.onload = function () {
+        // Mostrar body solo si contraseña correcta
+        window.onload = function() {
             const clave = prompt("Apartado solo para administradores, ingresa contraseña:");
             if (clave === "costa2025") {
                 document.body.style.display = "flex";
+                mostrarUltimoFolio();
             } else {
                 alert("Contraseña incorrecta. No se puede acceder.");
                 window.location.href = "index.html";
             }
         };
+
+        // Función para obtener último folio
+        function mostrarUltimoFolio() {
+            const folioInput = document.getElementById("folio");
+            const ultimoFolioP = document.getElementById("ultimoFolio");
+
+            database.ref("recibos").orderByChild("folio").limitToLast(1).once("value")
+                .then(snapshot => {
+                    let nuevoFolio = 1;
+                    snapshot.forEach(child => {
+                        const folioActual = parseInt(child.val().folio) || 0;
+                        nuevoFolio = folioActual + 1;
+                    });
+                    folioInput.value = nuevoFolio;
+                    ultimoFolioP.textContent = "Último folio: " + (nuevoFolio - 1);
+                })
+                .catch(error => {
+                    console.error("Error al obtener último folio:", error);
+                    folioInput.value = 1;
+                    ultimoFolioP.textContent = "No se pudo cargar el folio";
+                });
+        }
 
         function enviarDatosAFirebase(cliente, folio, fechaIngreso, total, servicio, kilos, fechaEntrega, horaEntrega, ropaEntregada, lavadas, estado, metodoPago) {
             const reciboData = {
@@ -151,8 +176,7 @@
                 metodoPago
             };
 
-            const recibosRef = database.ref("recibos");
-            recibosRef.push(reciboData)
+            database.ref("recibos").push(reciboData)
                 .then(() => console.log("Datos enviados correctamente."))
                 .catch(error => console.error("Error al enviar datos:", error));
         }
@@ -239,8 +263,10 @@
             }
 
             let mensajeLavadas = "";
-            if (lavadas <= 1) {
-                mensajeLavadas = "Sigue acumulando lavadas";
+            if (lavadas === 0) {
+                mensajeLavadas = "------------------------";
+            } else if (lavadas <= 1) {
+                mensajeLavadas = "Sigue acumulando lavadas";    
             } else if (lavadas <= 3) {
                 mensajeLavadas = "¡Tus lavadas aumentan!";
             } else if (lavadas <= 5) {
@@ -252,7 +278,7 @@
             document.getElementById("recibo").innerHTML = `
                 <h2>Gracias por visitar Lavandería JC.</h2>
                 <h3>Nosotros nos preocupamos por tus prendas.</h3>
-                <h4 style="color: red;">"Usted acepta que, presentarà este recibo para recibir su ropa. Sin èl NO debemos entregarla. Gracias".</h4>
+                <h4 style="color: red;">"Usted acepta que, presentarà este recibo para recibir su ropa. Sin él NO debemos entregarla. Gracias".</h4>
                 <p><strong>Folio:</strong> <span class="folio">${folio}</span></p>
                 <p><strong>Cliente:</strong> ${cliente}</p>
                 <p><strong>Total:</strong> <span class="total">$${total}</span></p>
@@ -274,6 +300,8 @@
 <body>
     <div class="container">
         <h3>Datos del Recibo</h3>
+        <p id="ultimoFolio" style="color: yellow;"></p>
+
         <label for="cliente">Nombre del Cliente:</label>
         <input type="text" id="cliente" required />
 
@@ -307,59 +335,24 @@
 
         <h4>Ropa entregada:</h4>
         <div class="ropa-formulario">
-            <label>👕 Playeras:</label>
-            <input type="number" id="playeras" min="0" value="0">
-
-            <label>👖 Pantalones:</label>
-            <input type="number" id="pantalones" min="0" value="0">
-
-            <label>🩳 Shorts:</label>
-            <input type="number" id="shorts" min="0" value="0">
-
-            <label>👟 Tenis:</label>
-            <input type="number" id="tenis" min="0" value="0">
-
-            <label>👔 Camisas:</label>
-            <input type="number" id="camisas" min="0" value="0">
-
-            <label>🧥 Abrigos:</label>
-            <input type="number" id="abrigos" min="0" value="0">
-
-            <label>🧦 Calcetines:</label>
-            <input type="number" id="calcetines" min="0" value="0">
-
-            <label>👗 Vestidos:</label>
-            <input type="number" id="vestidos" min="0" value="0">
-
-            <label>🛁 Toallas:</label>
-            <input type="number" id="toallas" min="0" value="0">
-
-            <label>🛏️ Sábanas:</label>
-            <input type="number" id="sabanas" min="0" value="0">
-
-            <label>🛌 Cobijas:</label>
-            <input type="number" id="cobijas" min="0" value="0">
-
-            <label>🧢 Gorras:</label>
-            <input type="number" id="gorras" min="0" value="0">
-
-            <label>👚 Blusas:</label>
-            <input type="number" id="blusas" min="0" value="0">
-
-            <label>👕 Camisetas:</label>
-            <input type="number" id="camisetas" min="0" value="0">
-
-            <label>👒 Faldas:</label>
-            <input type="number" id="faldas" min="0" value="0">
-
-            <label>🦺 Chalecos:</label>
-            <input type="number" id="chalecos" min="0" value="0">
-
-            <label>🎒 Mochilas:</label>
-            <input type="number" id="mochilas" min="0" value="0">
-            
-            <label>🩲 Boxers:</label>
-            <input type="number" id="boxers" min="0" value="0">
+            <label>👕 Playeras:</label><input type="number" id="playeras" min="0" value="0">
+            <label>👖 Pantalones:</label><input type="number" id="pantalones" min="0" value="0">
+            <label>🩳 Shorts:</label><input type="number" id="shorts" min="0" value="0">
+            <label>👟 Tenis:</label><input type="number" id="tenis" min="0" value="0">
+            <label>👔 Camisas:</label><input type="number" id="camisas" min="0" value="0">
+            <label>🧥 Sueter:</label><input type="number" id="abrigos" min="0" value="0">
+            <label>🧦 Calcetines:</label><input type="number" id="calcetines" min="0" value="0">
+            <label>👗 Vestidos:</label><input type="number" id="vestidos" min="0" value="0">
+            <label>🛁 Toallas:</label><input type="number" id="toallas" min="0" value="0">
+            <label>🛏️ Sábanas:</label><input type="number" id="sabanas" min="0" value="0">
+            <label>🛌 Edredones:</label><input type="number" id="cobijas" min="0" value="0">
+            <label>🧢 Gorras:</label><input type="number" id="gorras" min="0" value="0">
+            <label>👚 Blusas:</label><input type="number" id="blusas" min="0" value="0">
+            <label>👕 Camisetas:</label><input type="number" id="camisetas" min="0" value="0">
+            <label>👒 Faldas:</label><input type="number" id="faldas" min="0" value="0">
+            <label>🦺 Chalecos:</label><input type="number" id="chalecos" min="0" value="0">
+            <label>🎒 Mochilas:</label><input type="number" id="mochilas" min="0" value="0">
+            <label>🩲 Boxers:</label><input type="number" id="boxers" min="0" value="0">
         </div>
 
         <label for="estado">Estado del recibo:</label>
