@@ -44,6 +44,9 @@
     <button class="volver1" onclick="window.location.href='regisropa.html'">Registro de ropa</button>
   </div>
 
+  <!-- 🔽 Botón flotante para ir hasta abajo -->
+  <button id="btnIrAbajo" onclick="irAbajo()">⬇️</button>
+
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
@@ -72,5 +75,25 @@
       <button onclick="document.getElementById('modalEditarRecibo').style.display='none'">Cancelar</button>
     </div>
   </div>
+
+  <!-- Script del botón -->
+  <script>
+    function irAbajo() {
+      window.scrollTo({
+        top: document.body.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+
+    // Mostrar el botón solo cuando haya que desplazarse
+    window.addEventListener('scroll', function() {
+      const btn = document.getElementById('btnIrAbajo');
+      if (window.scrollY < 200) {
+        btn.style.opacity = '1';
+      } else {
+        btn.style.opacity = '0.7';
+      }
+    });
+  </script>
 </body>
 </html>
