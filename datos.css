@@ -198,3 +198,36 @@ button.volver1:hover {
     font-size: 18px;
   }
 }
+
+/* --- BOTÓN FLOTANTE PARA IR ABAJO --- */
+#btnIrAbajo {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #197740;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 55px;
+  height: 55px;
+  font-size: 26px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  transition: all 0.3s ease;
+  z-index: 999;
+}
+
+#btnIrAbajo:hover {
+  background-color: #145d32;
+  transform: scale(1.1);
+}
+
+@media (max-width: 600px) {
+  #btnIrAbajo {
+    width: 50px;
+    height: 50px;
+    font-size: 24px;
+    bottom: 15px;
+    right: 15px;
+  }
+}
