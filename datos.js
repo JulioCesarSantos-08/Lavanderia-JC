@@ -70,8 +70,11 @@ function mostrarRecibos() {
           <strong>Total:</strong> $${recibo.total}<br>
           <strong>Ingreso:</strong> ${recibo.fechaIngreso}<br>
           <strong>Entrega:</strong> ${recibo.fechaEntrega} ${recibo.horaEntrega}<br>
-          <strong>Ropa:</strong> ${recibo.ropaEntregada}<br>
-          <strong>Lavadas acumuladas:</strong> ${recibo.lavadas}<br>
+          <strong>Ropa:</strong> ${
+          recibo.detalleServicio || recibo.ropaEntregada || "No especificado"
+          }<br>
+          <br>
+          <strong>Lavadas acumuladas:</strong> ${recibo.lavadas || 0}<br>
           <strong>Estado:</strong> ${recibo.estado || "pendiente"}<br>
           <strong>Método de Pago:</strong> <span style="color: ${recibo.metodoPago === 'transferencia' ? 'orange' : 'green'};">
           ${recibo.metodoPago || 'no especificado'}
@@ -330,7 +333,7 @@ function exportarAExcel() {
           Total: recibo.total,
           Ingreso: recibo.fechaIngreso,
           Entrega: recibo.fechaEntrega + ' ' + recibo.horaEntrega,
-          Ropa: recibo.ropaEntregada,
+          Ropa: recibo.detalleServicio || recibo.ropaEntregada || "No especificado",
           "Lavadas acumuladas": recibo.lavadas,
           Estado: recibo.estado || "pendiente",
           "Metodo de Pago": recibo.metodoPago || "No especificado"
