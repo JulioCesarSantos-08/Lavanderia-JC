@@ -1,10 +1,12 @@
-// Configuración Firebase
+// =======================================
+// 🔥 CONFIGURACIÓN FIREBASE
+// =======================================
 const firebaseConfig = {
     apiKey: "AIzaSyCwBZMUnQ6rH3APMo4kXDiDvg_u7Zsud9w",
     authDomain: "lavanderia-nueva.firebaseapp.com",
     databaseURL: "https://lavanderia-nueva-default-rtdb.firebaseio.com",
     projectId: "lavanderia-nueva",
-    storageBucket: "lavanderia-nueva.firebasestorage.app",
+    storageBucket: "lavanderia-nueva.appspot.com",
     messagingSenderId: "1074532951",
     appId: "1:1074532951:web:311703f9f5441d11240912"
 };
@@ -12,172 +14,227 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
-// Mostrar body solo si contraseña correcta
-window.onload = function() {
+// =======================================
+// 🔐 SEGURIDAD
+// =======================================
+window.onload = () => {
     const clave = prompt("Apartado solo para administradores, ingresa contraseña:");
     if (clave === "costa2025") {
         document.body.style.display = "flex";
         mostrarUltimoFolio();
+        activarCalculoAutomatico();
     } else {
-        alert("Contraseña incorrecta. No se puede acceder.");
+        alert("Contraseña incorrecta");
         window.location.href = "index.html";
     }
 };
 
-// Función para obtener último folio
+// =======================================
+// 💰 PRECIOS POR SERVICIO
+// =======================================
+const PRECIOS_SERVICIO = {
+    "Básico": 20,
+    "Premium": 25,
+    "Express": 30
+};
+
+// =======================================
+// 🔢 ÚLTIMO FOLIO
+// =======================================
 function mostrarUltimoFolio() {
-    const folioInput = document.getElementById("folio");
-    const ultimoFolioP = document.getElementById("ultimoFolio");
-
-    database.ref("recibos").orderByChild("folio").limitToLast(1).once("value")
-        .then(snapshot => {
-            let nuevoFolio = 1;
-            snapshot.forEach(child => {
-                const folioActual = parseInt(child.val().folio) || 0;
-                nuevoFolio = folioActual + 1;
-            });
-            folioInput.value = nuevoFolio;
-            ultimoFolioP.textContent = "Último folio: " + (nuevoFolio - 1);
-        })
-        .catch(error => {
-            console.error("Error al obtener último folio:", error);
-            folioInput.value = 1;
-            ultimoFolioP.textContent = "No se pudo cargar el folio";
+    database.ref("recibos").once("value", snap => {
+        let mayor = 0;
+        snap.forEach(child => {
+            const f = parseInt(child.val().folio);
+            if (!isNaN(f) && f > mayor) mayor = f;
         });
+
+        document.getElementById("ultimoFolio").textContent =
+            `Último folio registrado: ${mayor}`;
+
+        document.getElementById("folio").value = mayor + 1;
+    });
 }
 
-function enviarDatosAFirebase(cliente, folio, fechaIngreso, total, servicio, kilos, fechaEntrega, horaEntrega, ropaEntregada, lavadas, estado, metodoPago) {
-    const reciboData = {
-        cliente,
-        folio,
-        fechaIngreso,
-        total,
-        servicio,
-        kilos,
-        fechaEntrega,
-        horaEntrega,
-        ropaEntregada,
-        lavadas,
-        estado,
-        metodoPago
-    };
+// =======================================
+// 🧮 CÁLCULO TOTAL
+// =======================================
+function calcularTotal() {
+    const servicio = document.getElementById("servicio").value;
+    const kilos = parseFloat(document.getElementById("kilos").value) || 0;
 
-    database.ref("recibos").push(reciboData)
-        .then(() => console.log("Datos enviados correctamente."))
-        .catch(error => console.error("Error al enviar datos:", error));
+    let total = kilos * (PRECIOS_SERVICIO[servicio] || 0);
+
+    document.querySelectorAll(".especial-jc").forEach(input => {
+        const cant = parseInt(input.value) || 0;
+        const precio = parseInt(input.dataset.precio) || 0;
+        total += cant * precio;
+    });
+
+    document.getElementById("total").value = total;
 }
 
-function formatDate(dateString) {
-    const [year, month, day] = dateString.split("-");
-    return `${year}-${month}-${day}`;
+function activarCalculoAutomatico() {
+    document.getElementById("servicio").addEventListener("change", calcularTotal);
+    document.getElementById("kilos").addEventListener("input", calcularTotal);
+
+    document.querySelectorAll(".especial-jc").forEach(input =>
+        input.addEventListener("input", calcularTotal)
+    );
+}
+
+// =======================================
+// 📅 UTILIDADES
+// =======================================
+function formatDate(fecha) {
+    if (!fecha) return "";
+    const [y, m, d] = fecha.split("-");
+    return `${d}-${m}-${y}`;
 }
 
 function formatoHora(hora24) {
-    const [hora, minutos] = hora24.split(":");
-    const h = parseInt(hora, 10);
+    if (!hora24) return "";
+    let [h, m] = hora24.split(":");
+    h = parseInt(h);
     const ampm = h >= 12 ? "PM" : "AM";
-    const hora12 = h % 12 || 12;
-    return `${hora12}:${minutos} ${ampm}`;
+    return `${h % 12 || 12}:${m} ${ampm}`;
 }
 
-function obtenerRopa() {
-    const prendas = [
-        { id: "playeras", emoji: "👕" },
-        { id: "pantalones", emoji: "👖" },
-        { id: "shorts", emoji: "🩳" },
-        { id: "tenis", emoji: "👟" },
-        { id: "camisas", emoji: "👔" },
-        { id: "abrigos", emoji: "🧥" },
-        { id: "calcetines", emoji: "🧦" },
-        { id: "vestidos", emoji: "👗" },
-        { id: "toallas", emoji: "🛁" },
-        { id: "sabanas", emoji: "🛏️" },
-        { id: "cobijas", emoji: "🛌" },
-        { id: "gorras", emoji: "🧢" },
-        { id: "blusas", emoji: "👚" },
-        { id: "camisetas", emoji: "👕" },
-        { id: "faldas", emoji: "👒" },
-        { id: "chalecos", emoji: "🦺" },
-        { id: "boxers", emoji: "🩲" },
-        { id: "mochilas", emoji: "🎒" }
-    ];
+function fechaActual() {
+    return new Date().toLocaleDateString("es-MX");
+}
 
-    let resultado = [];
-    prendas.forEach(p => {
-        const cantidad = parseInt(document.getElementById(p.id).value) || 0;
-        if (cantidad > 0) {
-            resultado.push(`${p.emoji} x${cantidad}`);
+// =======================================
+// 🧺 DETALLE DE ROPA NORMAL (ARREGLADO)
+// =======================================
+function generarDetalleRopaNormal() {
+    let lista = [];
+
+    document.querySelectorAll(".ropa-normal").forEach(input => {
+        const cant = parseInt(input.value) || 0;
+        if (cant > 0) {
+            const nombre = input.dataset.nombre;
+            lista.push(`${nombre}: ${cant}`);
         }
     });
 
-    return resultado.join(" | ");
+    return lista.length
+        ? `<strong>Ropa normal:</strong><br>${lista.join("<br>")}`
+        : "";
 }
 
-function generarRecibo() {
-    const cliente = document.getElementById("cliente").value.trim();
+// =======================================
+// 🧾 DETALLE COMPLETO DEL SERVICIO
+// =======================================
+function generarDetalleServicio() {
+    let detalle = [];
+
     const servicio = document.getElementById("servicio").value;
-    const kilos = document.getElementById("kilos").value;
-    const lavadas = parseInt(document.getElementById("lavadas").value);
-    const folio = document.getElementById("folio").value.trim();
-    const fechaIngresoRaw = document.getElementById("fechaIngreso").value;
-    const total = document.getElementById("total").value;
-    const fechaEntregaRaw = document.getElementById("fechaEntrega").value;
-    const horaEntregaRaw = document.getElementById("horaEntrega").value;
-    const estado = document.getElementById("estado").value;
-    const metodoPago = document.getElementById("metodoPago").value;
-    const ropaEntregada = obtenerRopa();
+    const kilos = parseFloat(document.getElementById("kilos").value) || 0;
+    const precio = PRECIOS_SERVICIO[servicio];
 
-    if (!folio || !cliente || !servicio || !kilos || isNaN(lavadas) || !fechaIngresoRaw || !total || !fechaEntregaRaw || !horaEntregaRaw || !estado || !metodoPago) {
-        alert("Por favor, complete todos los campos.");
+    if (kilos > 0) {
+        detalle.push(
+            `<strong>${servicio}:</strong> ${kilos} kg × $${precio} = $${kilos * precio}`
+        );
+    }
+
+    const ropaNormal = generarDetalleRopaNormal();
+    if (ropaNormal) detalle.push(ropaNormal);
+
+    let especiales = [];
+    document.querySelectorAll(".especial-jc").forEach(input => {
+        const cant = parseInt(input.value) || 0;
+        if (cant > 0) {
+            especiales.push(
+                `${input.dataset.nombre}: ${cant} × $${input.dataset.precio} = $${cant * input.dataset.precio}`
+            );
+        }
+    });
+
+    if (especiales.length) {
+        detalle.push(`<strong>Prendas especiales:</strong><br>${especiales.join("<br>")}`);
+    }
+
+    return detalle.join("<br><br>");
+}
+
+// =======================================
+// ☁️ ENVIAR A FIREBASE
+// =======================================
+function enviarDatosAFirebase(data) {
+    database.ref("recibos").push(data);
+}
+
+// =======================================
+// 🧾 GENERAR RECIBO
+// =======================================
+function generarRecibo() {
+
+    const cliente = document.getElementById("cliente").value.trim();
+    if (!cliente) {
+        alert("Ingresa el nombre del cliente");
         return;
     }
 
-    if (lavadas < 0 || lavadas > 7) {
-        alert("El número de lavadas debe estar entre 0 y 7.");
-        return;
-    }
+    const data = {
+        cliente,
+        folio: document.getElementById("folio").value,
+        servicio: document.getElementById("servicio").value,
+        kilos: document.getElementById("kilos").value,
+        total: document.getElementById("total").value,
+        estado: document.getElementById("estado").value,
+        metodoPago: document.getElementById("metodoPago").value,
+        fechaIngreso: formatDate(document.getElementById("fechaIngreso").value),
+        fechaEntrega: formatDate(document.getElementById("fechaEntrega").value),
+        horaEntrega: formatoHora(document.getElementById("horaEntrega").value),
+        detalleServicio: generarDetalleServicio()
+    };
 
-    const fechaIngreso = formatDate(fechaIngresoRaw);
-    const fechaEntrega = formatDate(fechaEntregaRaw);
-    const horaEntrega = formatoHora(horaEntregaRaw);
+    enviarDatosAFirebase(data);
 
-    enviarDatosAFirebase(cliente, folio, fechaIngreso, total, servicio, kilos, fechaEntrega, horaEntrega, ropaEntregada, lavadas, estado, metodoPago);
-
-    let lavadorasHTML = '';
-    for (let i = 0; i < lavadas; i++) {
-        lavadorasHTML += `<img src="imagenes/Lavadora.png" class="lavadora-icono" alt="Lavadora">`;
-    }
-
-    let mensajeLavadas = "";
-    if (lavadas === 0) {
-        mensajeLavadas = "------------------------";
-    } else if (lavadas <= 1) {
-        mensajeLavadas = "Sigue acumulando lavadas";    
-    } else if (lavadas <= 3) {
-        mensajeLavadas = "¡Tus lavadas aumentan!";
-    } else if (lavadas <= 5) {
-        mensajeLavadas = "¡Casi obtienes tu descuento!";
-    } else if (lavadas >= 7) {
-        mensajeLavadas = "🎉 ¡Felicidades! Conseguiste 50% de descuento 🎉";
-    }
-
-    document.getElementById("recibo").innerHTML = `
-        <h2>Gracias por visitar Lavandería JC.</h2>
-        <h3>Nosotros nos preocupamos por tus prendas.</h3>
-        <h4 style="color: red;">"Usted acepta que, presentarà este recibo para recibir su ropa. Sin él NO debemos entregarla. Gracias".</h4>
-        <p><strong>Folio:</strong> <span class="folio">${folio}</span></p>
-        <p><strong>Cliente:</strong> ${cliente}</p>
-        <p><strong>Total:</strong> <span class="total">$${total}</span></p>
-        <p><strong>Estado del pago:</strong> <span class="estado-pago">${estado}</span></p>
-        <p><strong>Servicio:</strong> ${servicio}</p>
-        <p><strong>Kilos:</strong> ${kilos} kg</p>
-        <p><strong>Ropa:</strong> ${ropaEntregada || "No especificada"}</p>
-        <p><strong>Entrega:</strong> ${fechaEntrega}</p>
-        <p><strong>Hora:</strong> ${horaEntrega}</p>
-        <div class="lavadoras-contenedor">${lavadorasHTML}</div>
-        <p><strong>${mensajeLavadas}</strong></p>
-    `;
+    document.getElementById("fechaRecibo").textContent = fechaActual();
+    document.getElementById("folioRecibo").textContent = data.folio;
+    document.getElementById("clienteRecibo").textContent = data.cliente;
+    document.getElementById("detalleServicio").innerHTML = data.detalleServicio;
+    document.getElementById("totalRecibo").textContent = data.total;
+    document.getElementById("estadoRecibo").textContent = data.estado;
+    document.getElementById("pagoRecibo").textContent = data.metodoPago;
+    document.getElementById("entregaRecibo").textContent =
+        `${data.fechaEntrega} ${data.horaEntrega}`;
 
     document.getElementById("recibo").classList.remove("hidden");
-    document.getElementById("recibo").scrollIntoView({ behavior: 'smooth' });
+    document.getElementById("btnCompartir").classList.remove("hidden");
+    document.getElementById("recibo").scrollIntoView({ behavior: "smooth" });
+}
+
+// =======================================
+// 📤 COMPARTIR RECIBO
+// =======================================
+function compartirRecibo() {
+    const recibo = document.getElementById("recibo");
+
+    html2canvas(recibo, { scale: 3, backgroundColor: "#fff" })
+        .then(canvas => {
+            canvas.toBlob(blob => {
+                const archivo = new File(
+                    [blob],
+                    `recibo_lavanderia_jc_${Date.now()}.png`,
+                    { type: "image/png" }
+                );
+
+                if (navigator.share) {
+                    navigator.share({
+                        files: [archivo],
+                        title: "Recibo - Lavandería JC",
+                        text: "Aquí está tu recibo 🧺"
+                    });
+                } else {
+                    const link = document.createElement("a");
+                    link.download = archivo.name;
+                    link.href = canvas.toDataURL("image/png");
+                    link.click();
+                }
+            });
+        });
 }
