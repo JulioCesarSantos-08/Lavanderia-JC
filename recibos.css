@@ -1,49 +1,53 @@
+/* ============================= */
+/* ESTILOS GENERALES */
+/* ============================= */
 body {
     margin: 0;
     padding: 0;
     display: none;
     justify-content: center;
     align-items: center;
-    background: url('imagenes/logo.jpg') repeat;
-    background-size: cover, 150px 150px;
-    background-position: center center, top left;
-    background-attachment: fixed, fixed;
-    color: white;
+    background: #f2f2f2;
+    color: #000;
     flex-direction: column;
     overflow-y: auto;
     font-family: Arial, sans-serif;
-    position: relative;
 }
 
-body::before {
-    content: "";
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: url('imagenes/logo.png') repeat;
-    background-size: 150px 150px;
-    opacity: 0.1;
-    pointer-events: none;
-    z-index: 0;
-}
-
+/* ============================= */
+/* CONTENEDOR PRINCIPAL */
+/* ============================= */
 .container {
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.75);
     padding: 20px;
-    border-radius: 10px;
+    border-radius: 12px;
     width: 90%;
-    max-width: 400px;
+    max-width: 420px;
     position: relative;
     z-index: 1;
+    margin-top: 20px;
+    color: white;
 }
 
-input, select, button {
+/* ============================= */
+/* FORMULARIO */
+/* ============================= */
+input,
+select,
+button {
     padding: 10px;
     font-size: 16px;
     border: none;
-    border-radius: 5px;
+    border-radius: 6px;
     width: 100%;
     margin: 10px 0;
     box-sizing: border-box;
+}
+
+label {
+    font-weight: bold;
+    margin-top: 5px;
+    display: block;
 }
 
 button {
@@ -51,35 +55,142 @@ button {
     color: white;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    font-weight: bold;
 }
 
 button:hover {
     background-color: #0056b3;
 }
 
+/* ============================= */
+/* UTILIDADES */
+/* ============================= */
 .hidden {
     display: none;
 }
 
+/* ============================= */
+/* ÚLTIMO FOLIO */
+/* ============================= */
+.ultimo-folio {
+    font-weight: bold;
+    font-size: 1.2em;
+    color: #00BFFF;
+    background: rgba(0, 0, 50, 0.5);
+    padding: 8px 12px;
+    border-radius: 8px;
+    text-align: center;
+    margin-bottom: 10px;
+    border: 1px solid #00BFFF;
+}
+
+/* ============================= */
+/* RECIBO */
+/* ============================= */
 #recibo {
     margin-top: 20px;
-    background: rgba(255, 255, 255, 0.9);
-    color: black;
-    padding: 15px;
-    border-radius: 10px;
+    background: #ffffff;
+    color: #000;
+    padding: 18px;
+    border-radius: 14px;
     width: 90%;
     max-width: 400px;
     box-sizing: border-box;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    position: relative;
+    overflow: hidden;
 }
 
-.folio {
-    color: red;
+/* ============================= */
+/* QR COMO MARCA DE AGUA */
+/* ============================= */
+#recibo::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("imagenes/qr.png");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 65%;
+    opacity: 0.14;
+    filter: grayscale(100%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Todo el contenido encima */
+#recibo * {
+    position: relative;
+    z-index: 1;
+}
+
+/* ============================= */
+/* HEADER DEL RECIBO */
+/* ============================= */
+.recibo-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.recibo-logo {
+    width: 60px;
+    height: auto;
+    display: block;
+}
+
+.recibo-titulo {
+    font-size: 1.4em;
     font-weight: bold;
-    font-size: 1.5em;
+    letter-spacing: 1px;
 }
 
+/* ============================= */
+/* LÍNEAS DIVISORIAS */
+/* ============================= */
+.linea {
+    width: 100%;
+    height: 2px;
+    background: #000;
+    margin: 10px 0;
+    opacity: 0.6;
+}
+
+/* ============================= */
+/* TEXTO DEL RECIBO */
+/* ============================= */
+#recibo p {
+    margin: 6px 0;
+    font-size: 0.95em;
+}
+
+/* 🔴 FOLIO EN ROJO */
+#folioRecibo {
+    color: #c00000;
+    font-weight: bold;
+    font-size: 1.3em;
+}
+
+/* 🟢 TOTAL EN VERDE */
 .total {
     font-weight: bold;
+    font-size: 1.2em;
+    color: #0a7d00;
+}
+
+/* 🔵 ESTADO PAGADO / PENDIENTE */
+#estadoRecibo {
+    color: #0056b3;
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+/* ============================= */
+/* ICONOS DE LAVADORAS */
+/* ============================= */
+.lavadoras-contenedor {
+    margin: 10px 0;
 }
 
 .lavadoras-contenedor img {
@@ -88,27 +199,16 @@ button:hover {
     margin-right: 5px;
 }
 
-.estado-pago {
-    color: red;
-    font-weight: bold;
-    font-size: 1.2em;
-}
-
-.ropa-formulario label {
-    display: block;
-    margin: 5px 0 2px;
-}
-
-/* Estilo especial para el "Último folio" */
-.ultimo-folio {
-    font-weight: bold;
-    font-size: 1.2em;
-    color: #00BFFF; /* Azul brillante */
-    background: rgba(0, 0, 50, 0.5); /* Fondo azul oscuro semi-transparente */
-    padding: 8px 12px;
-    border-radius: 8px;
+/* ============================= */
+/* FOOTER DEL RECIBO */
+/* ============================= */
+.recibo-footer {
     text-align: center;
-    margin-bottom: 10px;
-    box-shadow: 0 0 10px rgba(0, 191, 255, 0.7); /* Brillo azul */
-    border: 1px solid #00BFFF;
+    font-size: 0.9em;
+    margin-top: 12px;
+}
+
+.recibo-footer p {
+    margin: 3px 0;
+    font-weight: bold;
 }
