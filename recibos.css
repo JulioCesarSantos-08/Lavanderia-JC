@@ -108,7 +108,7 @@ button:hover {
     content: "";
     position: absolute;
     inset: 0;
-    background-image: url("imagenes/qr.png");
+    background-image: url("imagenes/QR.png");
     background-repeat: no-repeat;
     background-position: center;
     background-size: 65%;
