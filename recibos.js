@@ -86,7 +86,9 @@ function activarCalculoAutomatico() {
 // =======================================
 // 📅 UTILIDADES
 // =======================================
-function formatDate(fecha) {
+
+// 👉 SOLO PARA MOSTRAR (NO PARA GUARDAR)
+function mostrarFecha(fecha) {
     if (!fecha) return "";
     const [y, m, d] = fecha.split("-");
     return `${d}-${m}-${y}`;
@@ -105,7 +107,7 @@ function fechaActual() {
 }
 
 // =======================================
-// 🧺 DETALLE DE ROPA NORMAL (ARREGLADO)
+// 🧺 DETALLE DE ROPA NORMAL
 // =======================================
 function generarDetalleRopaNormal() {
     let lista = [];
@@ -185,14 +187,20 @@ function generarRecibo() {
         total: document.getElementById("total").value,
         estado: document.getElementById("estado").value,
         metodoPago: document.getElementById("metodoPago").value,
-        fechaIngreso: formatDate(document.getElementById("fechaIngreso").value),
-        fechaEntrega: formatDate(document.getElementById("fechaEntrega").value),
+
+        // ✅ FECHAS GUARDADAS CORRECTAMENTE (YYYY-MM-DD)
+        fechaIngreso: document.getElementById("fechaIngreso").value,
+        fechaEntrega: document.getElementById("fechaEntrega").value,
+
         horaEntrega: formatoHora(document.getElementById("horaEntrega").value),
         detalleServicio: generarDetalleServicio()
     };
 
     enviarDatosAFirebase(data);
 
+    // ===================================
+    // MOSTRAR RECIBO
+    // ===================================
     document.getElementById("fechaRecibo").textContent = fechaActual();
     document.getElementById("folioRecibo").textContent = data.folio;
     document.getElementById("clienteRecibo").textContent = data.cliente;
@@ -201,7 +209,7 @@ function generarRecibo() {
     document.getElementById("estadoRecibo").textContent = data.estado;
     document.getElementById("pagoRecibo").textContent = data.metodoPago;
     document.getElementById("entregaRecibo").textContent =
-        `${data.fechaEntrega} ${data.horaEntrega}`;
+        `${mostrarFecha(data.fechaEntrega)} ${data.horaEntrega}`;
 
     document.getElementById("recibo").classList.remove("hidden");
     document.getElementById("btnCompartir").classList.remove("hidden");
