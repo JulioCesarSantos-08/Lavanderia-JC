@@ -39,6 +39,11 @@ const PRECIOS_SERVICIO = {
 };
 
 // =======================================
+// ✍️ CONTROL TOTAL MANUAL
+// =======================================
+let totalModificadoManualmente = false;
+
+// =======================================
 // 🔢 ÚLTIMO FOLIO
 // =======================================
 function mostrarUltimoFolio() {
@@ -57,9 +62,13 @@ function mostrarUltimoFolio() {
 }
 
 // =======================================
-// 🧮 CÁLCULO TOTAL
+// 🧮 CÁLCULO TOTAL (AUTO + MANUAL)
 // =======================================
 function calcularTotal() {
+
+    // 👉 Si el usuario lo editó manualmente, no sobreescribir
+    if (totalModificadoManualmente) return;
+
     const servicio = document.getElementById("servicio").value;
     const kilos = parseFloat(document.getElementById("kilos").value) || 0;
 
@@ -74,20 +83,39 @@ function calcularTotal() {
     document.getElementById("total").value = total;
 }
 
+// =======================================
+// ⚙️ ACTIVAR CÁLCULO AUTOMÁTICO
+// =======================================
 function activarCalculoAutomatico() {
-    document.getElementById("servicio").addEventListener("change", calcularTotal);
-    document.getElementById("kilos").addEventListener("input", calcularTotal);
+
+    const resetManual = () => totalModificadoManualmente = false;
+
+    document.getElementById("servicio").addEventListener("change", () => {
+        resetManual();
+        calcularTotal();
+    });
+
+    document.getElementById("kilos").addEventListener("input", () => {
+        resetManual();
+        calcularTotal();
+    });
 
     document.querySelectorAll(".especial-jc").forEach(input =>
-        input.addEventListener("input", calcularTotal)
+        input.addEventListener("input", () => {
+            resetManual();
+            calcularTotal();
+        })
     );
+
+    // 👉 Detectar edición manual del total
+    document.getElementById("total").addEventListener("input", () => {
+        totalModificadoManualmente = true;
+    });
 }
 
 // =======================================
 // 📅 UTILIDADES
 // =======================================
-
-// 👉 SOLO PARA MOSTRAR (NO PARA GUARDAR)
 function mostrarFecha(fecha) {
     if (!fecha) return "";
     const [y, m, d] = fecha.split("-");
@@ -187,11 +215,8 @@ function generarRecibo() {
         total: document.getElementById("total").value,
         estado: document.getElementById("estado").value,
         metodoPago: document.getElementById("metodoPago").value,
-
-        // ✅ FECHAS GUARDADAS CORRECTAMENTE (YYYY-MM-DD)
         fechaIngreso: document.getElementById("fechaIngreso").value,
         fechaEntrega: document.getElementById("fechaEntrega").value,
-
         horaEntrega: formatoHora(document.getElementById("horaEntrega").value),
         detalleServicio: generarDetalleServicio()
     };
