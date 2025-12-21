@@ -48,7 +48,8 @@
     <input type="date" id="fechaIngreso" required>
 
     <label>Total a pagar:</label>
-    <input type="number" id="total" min="0" readonly>
+    <!-- 🔥 YA ES EDITABLE -->
+    <input type="number" id="total" min="0">
 
     <label>Fecha de entrega:</label>
     <input type="date" id="fechaEntrega" required>
@@ -188,6 +189,14 @@
     <div class="qr-marca-agua"></div>
 
     <hr>
+
+    <!-- 🔴 LEYENDA LEGAL -->
+    <p id="leyendaRecibo">
+        Usted acepta que, presentara este recibo para recibir su ropa.
+        <br>
+        Sin el NO podemos entregarla, Gracias.
+    </p>
+
     <p class="gracias">Gracias por su preferencia 🙌</p>
     <p class="telefono">Tel: 954 183 3850</p>
 </div>
