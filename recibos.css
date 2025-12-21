@@ -187,6 +187,21 @@ button:hover {
 }
 
 /* ============================= */
+/* 🔴 LEYENDA LEGAL DEL RECIBO */
+/* ============================= */
+#leyendaRecibo {
+    margin-top: 14px;
+    color: #c00000;
+    font-weight: bold;
+    font-size: 0.85em;
+    text-align: center;
+    line-height: 1.4;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #000; /* 👈 LÍNEA EXTRA */
+}
+
+/* ============================= */
 /* ICONOS DE LAVADORAS */
 /* ============================= */
 .lavadoras-contenedor {
@@ -202,13 +217,8 @@ button:hover {
 /* ============================= */
 /* FOOTER DEL RECIBO */
 /* ============================= */
-.recibo-footer {
+.gracias,
+.telefono {
     text-align: center;
-    font-size: 0.9em;
-    margin-top: 12px;
-}
-
-.recibo-footer p {
-    margin: 3px 0;
     font-weight: bold;
 }
