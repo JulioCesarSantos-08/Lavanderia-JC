@@ -84,8 +84,8 @@ function mostrarRecibos() {
           <button onclick="eliminarRecibo('${clave}')">Eliminar</button>
           ${
             recibo.estado !== "pagado" && recibo.estado !== "pedido listo"
-              ? `<button onclick="marcarComopagado('${clave}')">Sin pagar</button>`
-              : `<button style="background-color: green; color: white;" onclick="marcarComoPendiente('${clave}')">pagado</button>`
+              ? `<button onclick="marcarComoPagado('${clave}')">Sin pagar</button>`
+              : `<button style="background-color: green; color: white;" onclick="marcarComoPendiente('${clave}')">Pagado</button>`
           }
         `;
         lista.appendChild(div);
