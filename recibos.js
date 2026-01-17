@@ -195,7 +195,7 @@ function compartirRecibo() {
                 navigator.share({
                     files: [archivo],
                     title: "Recibo - Lavandería JC",
-                    text: "Aquí está tu recibo 🧺"
+                    text: "Este es su recibo del dia de hoy🧺"
                 });
             } else {
                 const link = document.createElement("a");
