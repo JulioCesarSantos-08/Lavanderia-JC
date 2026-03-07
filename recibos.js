@@ -56,6 +56,13 @@ function calcularTotal() {
         total += cant * precio;
     });
 
+    const tipoDom = document.getElementById("tipoDomicilio")?.value;
+    const precioDom = parseFloat(document.getElementById("precioDomicilio")?.value) || 0;
+
+    if (tipoDom && precioDom > 0) {
+        total += precioDom;
+    }
+
     document.getElementById("total").value = total;
 }
 
@@ -78,6 +85,22 @@ function activarCalculoAutomatico() {
             calcularTotal();
         });
     });
+
+    const precioDom = document.getElementById("precioDomicilio");
+    if (precioDom) {
+        precioDom.addEventListener("input", () => {
+            resetManual();
+            calcularTotal();
+        });
+    }
+
+    const tipoDom = document.getElementById("tipoDomicilio");
+    if (tipoDom) {
+        tipoDom.addEventListener("change", () => {
+            resetManual();
+            calcularTotal();
+        });
+    }
 
     document.getElementById("total").addEventListener("input", () => {
         totalModificadoManualmente = true;
@@ -134,6 +157,13 @@ function generarDetalleServicio() {
 
     if (especiales.length) {
         detalle.push(`<strong>Prendas especiales:</strong><br>${especiales.join("<br>")}`);
+    }
+
+    const tipoDom = document.getElementById("tipoDomicilio")?.value;
+    const precioDom = parseFloat(document.getElementById("precioDomicilio")?.value) || 0;
+
+    if (tipoDom && precioDom > 0) {
+        detalle.push(`<strong>Servicio a domicilio:</strong><br>${tipoDom}<br>Costo: $${precioDom}`);
     }
 
     return detalle.join("<br><br>");
@@ -195,7 +225,7 @@ function compartirRecibo() {
                 navigator.share({
                     files: [archivo],
                     title: "Recibo - Lavandería JC",
-                    text: "Este es su recibo del dia de hoy🧺"
+                    text: "Gracias por su preferencia este es su recibo del día de hoy🧺"
                 });
             } else {
                 const link = document.createElement("a");
