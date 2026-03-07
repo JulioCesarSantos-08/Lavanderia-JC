@@ -1,208 +1,231 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <link rel="icon" type="image/png" href="imagenes/favicon.png" />
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Crear Recibos - Lavandería JC</title>
+<link rel="icon" type="image/png" href="imagenes/favicon.png" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Crear Recibos - Lavandería JC</title>
 
-    <!-- CSS -->
-    <link rel="stylesheet" href="recibos.css">
+<link rel="stylesheet" href="recibos.css">
 
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
 
-    <!-- html2canvas -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-    <!-- JS -->
-    <script src="recibos.js" defer></script>
+<script src="recibos.js" defer></script>
 </head>
+
 <body>
 
 <div class="container">
-    <h3>Datos del Recibo</h3>
-    <p id="ultimoFolio" class="ultimo-folio"></p>
 
-    <label>Nombre del Cliente:</label>
-    <input type="text" id="cliente" required>
+<h3>Datos del Recibo</h3>
+<p id="ultimoFolio" class="ultimo-folio"></p>
 
-    <label>Servicio:</label>
-    <select id="servicio">
-        <option value="Básico">Básico</option>
-        <option value="Premium">Premium</option>
-        <option value="Express">Express</option>
-    </select>
+<label>Nombre del Cliente:</label>
+<input type="text" id="cliente" required>
 
-    <label>Kilos de ropa:</label>
-    <input type="number" id="kilos" min="0" step="0.1" required>
+<label>Servicio:</label>
+<select id="servicio">
+<option value="Básico">Básico</option>
+<option value="Premium">Premium</option>
+<option value="Express">Express</option>
+</select>
 
-    <label>Lavadas acumuladas:</label>
-    <input type="number" id="lavadas" min="0" max="7" value="0">
+<label>Kilos de ropa:</label>
+<input type="number" id="kilos" min="0" step="0.1" required>
 
-    <label>Folio:</label>
-    <input type="text" id="folio" required>
+<label>Lavadas acumuladas:</label>
+<input type="number" id="lavadas" min="0" max="7" value="0">
 
-    <label>Fecha de ingreso:</label>
-    <input type="date" id="fechaIngreso" required>
+<label>Folio:</label>
+<input type="text" id="folio" required>
 
-    <label>Total a pagar:</label>
-    <!-- 🔥 YA ES EDITABLE -->
-    <input type="number" id="total" min="0">
+<label>Fecha de ingreso:</label>
+<input type="date" id="fechaIngreso" required>
 
-    <label>Fecha de entrega:</label>
-    <input type="date" id="fechaEntrega" required>
+<label>Total a pagar:</label>
+<input type="number" id="total" min="0">
 
-    <label>Hora de entrega:</label>
-    <input type="time" id="horaEntrega" required>
+<label>Fecha de entrega:</label>
+<input type="date" id="fechaEntrega" required>
 
-    <hr>
+<label>Hora de entrega:</label>
+<input type="time" id="horaEntrega" required>
 
-    <!-- ================= ROPA NORMAL ================= -->
-    <details open>
-        <summary><strong>🧺 Ropa normal (incluida en el kilo)</strong></summary>
-        <div class="ropa-formulario">
+<hr>
 
-            <label>👕 Playeras:</label>
-            <input type="number" class="ropa-normal" data-nombre="Playeras" value="0">
+<details open>
+<summary><strong>🧺 Ropa normal (incluida en el kilo)</strong></summary>
 
-            <label>👖 Pantalones:</label>
-            <input type="number" class="ropa-normal" data-nombre="Pantalones" value="0">
+<div class="ropa-formulario">
 
-            <label>🩳 Shorts:</label>
-            <input type="number" class="ropa-normal" data-nombre="Shorts" value="0">
+<label>👕 Playeras:</label>
+<input type="number" class="ropa-normal" data-nombre="Playeras" value="0">
 
-            <label>👔 Camisas:</label>
-            <input type="number" class="ropa-normal" data-nombre="Camisas" value="0">
+<label>👖 Pantalones:</label>
+<input type="number" class="ropa-normal" data-nombre="Pantalones" value="0">
 
-            <label>🧥 Suéter:</label>
-            <input type="number" class="ropa-normal" data-nombre="Suéter" value="0">
+<label>🩳 Shorts:</label>
+<input type="number" class="ropa-normal" data-nombre="Shorts" value="0">
 
-            <label>🧦 Calcetines:</label>
-            <input type="number" class="ropa-normal" data-nombre="Calcetines" value="0">
+<label>👔 Camisas:</label>
+<input type="number" class="ropa-normal" data-nombre="Camisas" value="0">
 
-            <label>👗 Vestidos:</label>
-            <input type="number" class="ropa-normal" data-nombre="Vestidos" value="0">
+<label>🧥 Suéter:</label>
+<input type="number" class="ropa-normal" data-nombre="Suéter" value="0">
 
-            <label>🧢 Gorras:</label>
-            <input type="number" class="ropa-normal" data-nombre="Gorras" value="0">
+<label>🧦 Calcetines:</label>
+<input type="number" class="ropa-normal" data-nombre="Calcetines" value="0">
 
-            <label>👚 Blusas:</label>
-            <input type="number" class="ropa-normal" data-nombre="Blusas" value="0">
+<label>👗 Vestidos:</label>
+<input type="number" class="ropa-normal" data-nombre="Vestidos" value="0">
 
-            <label>👒 Faldas:</label>
-            <input type="number" class="ropa-normal" data-nombre="Faldas" value="0">
+<label>🧢 Gorras:</label>
+<input type="number" class="ropa-normal" data-nombre="Gorras" value="0">
 
-            <label>🦺 Chalecos:</label>
-            <input type="number" class="ropa-normal" data-nombre="Chalecos" value="0">
+<label>👚 Blusas:</label>
+<input type="number" class="ropa-normal" data-nombre="Blusas" value="0">
 
-            <label>🎒 Mochilas:</label>
-            <input type="number" class="ropa-normal" data-nombre="Mochilas" value="0">
+<label>👒 Faldas:</label>
+<input type="number" class="ropa-normal" data-nombre="Faldas" value="0">
 
-            <label>🩲 Boxers:</label>
-            <input type="number" class="ropa-normal" data-nombre="Boxers" value="0">
+<label>🦺 Chalecos:</label>
+<input type="number" class="ropa-normal" data-nombre="Chalecos" value="0">
 
-        </div>
-    </details>
+<label>🎒 Mochilas:</label>
+<input type="number" class="ropa-normal" data-nombre="Mochilas" value="0">
 
-    <hr>
+<label>🩲 Boxers:</label>
+<input type="number" class="ropa-normal" data-nombre="Boxers" value="0">
 
-    <!-- ================= PRENDAS ESPECIALES ================= -->
-    <details>
-        <summary><strong>🛏️ Prendas especiales (precio fijo)</strong></summary>
-        <div class="ropa-formulario">
+</div>
+</details>
 
-            <label>👟 Tenis ($70):</label>
-            <input type="number" class="especial-jc" data-nombre="Tenis" data-precio="70" value="0">
+<hr>
 
-            <label>🛁 Toalla ($30):</label>
-            <input type="number" class="especial-jc" data-nombre="Toalla" data-precio="30" value="0">
+<details>
+<summary><strong>🛏️ Prendas especiales (precio fijo)</strong></summary>
 
-            <label>🛏️ Sábanas ($15):</label>
-            <input type="number" class="especial-jc" data-nombre="Sábanas" data-precio="15" value="0">
+<div class="ropa-formulario">
 
-            <label>🛌 Edredón Ind ($60):</label>
-            <input type="number" class="especial-jc" data-nombre="Edredón Ind" data-precio="60" value="0">
+<label>👟 Tenis ($70):</label>
+<input type="number" class="especial-jc" data-nombre="Tenis" data-precio="70" value="0">
 
-            <label>🛌 Edredón Mat ($80):</label>
-            <input type="number" class="especial-jc" data-nombre="Edredón Mat" data-precio="80" value="0">
+<label>🛁 Toalla ($30):</label>
+<input type="number" class="especial-jc" data-nombre="Toalla" data-precio="30" value="0">
 
-            <label>🛌 Edredón King ($100):</label>
-            <input type="number" class="especial-jc" data-nombre="Edredón King" data-precio="100" value="0">
+<label>🛏️ Sábanas ($15):</label>
+<input type="number" class="especial-jc" data-nombre="Sábanas" data-precio="15" value="0">
 
-            <label>🛏️ Almohadas ($50):</label>
-            <input type="number" class="especial-jc" data-nombre="Almohadas" data-precio="50" value="0">
+<label>🛌 Edredón Ind ($60):</label>
+<input type="number" class="especial-jc" data-nombre="Edredón Ind" data-precio="60" value="0">
 
-        </div>
-    </details>
+<label>🛌 Edredón Mat ($80):</label>
+<input type="number" class="especial-jc" data-nombre="Edredón Mat" data-precio="80" value="0">
 
-    <hr>
+<label>🛌 Edredón King ($100):</label>
+<input type="number" class="especial-jc" data-nombre="Edredón King" data-precio="100" value="0">
 
-    <label>Estado del recibo:</label>
-    <select id="estado">
-        <option value="Pendiente">Pendiente</option>
-        <option value="Pagado">Pagado</option>
-    </select>
+<label>🛏️ Almohadas ($50):</label>
+<input type="number" class="especial-jc" data-nombre="Almohadas" data-precio="50" value="0">
 
-    <label>Método de pago:</label>
-    <select id="metodoPago">
-        <option value="Efectivo">Efectivo</option>
-        <option value="Transferencia">Transferencia</option>
-    </select>
+</div>
+</details>
 
-    <button onclick="generarRecibo()">Generar Recibo</button>
-    <button onclick="window.location.href='index.html'">Regresar a Inicio</button>
-    <button onclick="window.location.href='datos.html'">Ver Datos</button>
+<hr>
+
+<details>
+<summary><strong>🚚 Servicio a domicilio</strong></summary>
+
+<label>Tipo de servicio:</label>
+<select id="tipoDomicilio">
+<option value="">Ninguno</option>
+<option value="Ir a recoger">Ir a recoger</option>
+<option value="Ir a entregar">Ir a entregar</option>
+<option value="Viaje redondo">Viaje redondo</option>
+</select>
+
+<label>Costo del servicio ($):</label>
+<input type="number" id="precioDomicilio" min="0" value="0">
+
+</details>
+
+<hr>
+
+<label>Estado del recibo:</label>
+<select id="estado">
+<option value="Pendiente">Pendiente</option>
+<option value="Pagado">Pagado</option>
+</select>
+
+<label>Método de pago:</label>
+<select id="metodoPago">
+<option value="Efectivo">Efectivo</option>
+<option value="Transferencia">Transferencia</option>
+</select>
+
+<button onclick="generarRecibo()">Generar Recibo</button>
+<button onclick="window.location.href='index.html'">Regresar a Inicio</button>
+<button onclick="window.location.href='datos.html'">Ver Datos</button>
+
 </div>
 
-<!-- ================= RECIBO ================= -->
 <div id="recibo" class="hidden">
-    <div class="recibo-header">
-        <img src="imagenes/favicon.png" class="recibo-logo">
 
-        <div class="titulo-recibo">
-            <h2>LAVANDERÍA JC</h2>
-            <p class="direccion-recibo">
-                Av. Ignacio Zaragoza 2157, Puerto Escondido, Oax.
-            </p>
-            <p>Fecha: <span id="fechaRecibo"></span></p>
-        </div>
-    </div>
+<div class="recibo-header">
 
-    <hr>
+<img src="imagenes/favicon.png" class="recibo-logo">
 
-    <p><strong>Folio:</strong> <span id="folioRecibo"></span></p>
-    <p><strong>Cliente:</strong> <span id="clienteRecibo"></span></p>
+<div class="titulo-recibo">
+<h2>LAVANDERÍA JC</h2>
 
-    <p><strong>Detalle del servicio:</strong></p>
-    <div id="detalleServicio"></div>
+<p class="direccion-recibo">
+Av. Ignacio Zaragoza 2157, Puerto Escondido, Oax.
+</p>
 
-    <hr>
+<p>Fecha: <span id="fechaRecibo"></span></p>
+</div>
 
-    <p class="total">Total a pagar: $<span id="totalRecibo"></span></p>
+</div>
 
-    <p><strong>Estado:</strong> <span id="estadoRecibo"></span></p>
-    <p><strong>Método de pago:</strong> <span id="pagoRecibo"></span></p>
-    <p><strong>Entrega:</strong> <span id="entregaRecibo"></span></p>
+<hr>
 
-    <div class="qr-marca-agua"></div>
+<p><strong>Folio:</strong> <span id="folioRecibo"></span></p>
 
-    <hr>
+<p><strong>Cliente:</strong> <span id="clienteRecibo"></span></p>
 
-    <!-- 🔴 LEYENDA LEGAL -->
-    <p id="leyendaRecibo">
-        Usted acepta que, presentara este recibo para recibir su ropa.
-        <br>
-        Sin el NO podemos entregarla, Gracias.
-    </p>
+<p><strong>Detalle del servicio:</strong></p>
 
-    <p class="gracias">Gracias por su preferencia 🙌</p>
-    <p class="telefono">Tel: 954 183 3850</p>
+<div id="detalleServicio"></div>
+
+<hr>
+
+<p class="total">Total a pagar: $<span id="totalRecibo"></span></p>
+
+<p><strong>Estado:</strong> <span id="estadoRecibo"></span></p>
+
+<p><strong>Método de pago:</strong> <span id="pagoRecibo"></span></p>
+
+<p><strong>Entrega:</strong> <span id="entregaRecibo"></span></p>
+
+<hr>
+
+<p id="leyendaRecibo">
+Usted acepta que, presentara este recibo para recibir su ropa.
+<br>
+Sin el NO podemos entregarla, Gracias.
+</p>
+
+<p class="gracias">Gracias por su preferencia 🙌</p>
+
+<p class="telefono">Tel: 954 183 3850</p>
+
 </div>
 
 <button id="btnCompartir" class="hidden" onclick="compartirRecibo()">
-    📤 Compartir recibo
+📤 Compartir recibo
 </button>
 
 </body>
