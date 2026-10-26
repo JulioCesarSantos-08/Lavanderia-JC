@@ -8,231 +8,688 @@ const firebaseConfig = {
     appId: "1:1074532951:web:311703f9f5441d11240912"
 };
 
-firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
-
-window.onload = () => {
-    const clave = prompt("Apartado solo para administradores, ingresa contraseña:");
-    if (clave === "costa2025") {
-        document.body.style.display = "flex";
-        mostrarUltimoFolio();
-        activarCalculoAutomatico();
-    } else {
-        alert("Contraseña incorrecta");
-        window.location.href = "index.html";
-    }
-};
-
 const PRECIOS_SERVICIO = {
-    "Básico": 20,
-    "Premium": 25,
-    "Express": 30
+    Básico: 20,
+    Premium: 25,
+    Express: 30
 };
 
-let totalModificadoManualmente = false;
+const formatoMoneda = new Intl.NumberFormat("es-MX", {
+    style: "currency",
+    currency: "MXN"
+});
 
-function mostrarUltimoFolio() {
-    database.ref("recibos").once("value", snap => {
-        let mayor = 0;
-        snap.forEach(child => {
-            const f = parseInt(child.val().folio);
-            if (!isNaN(f) && f > mayor) mayor = f;
-        });
-        document.getElementById("ultimoFolio").textContent = `Último folio registrado: ${mayor}`;
-        document.getElementById("folio").value = mayor + 1;
+const $ = id => document.getElementById(id);
+
+let database = null;
+let guardando = false;
+let compartiendo = false;
+let totalModificadoManualmente = false;
+let archivoRecibo = null;
+let preparandoImagen = null;
+let reciboActual = null;
+let solicitudPendiente = null;
+let ultimoContenidoGuardado = "";
+let mayorFolioConocido = 0;
+
+function dinero(valor) {
+    return formatoMoneda.format(Number(valor) || 0);
+}
+
+function redondear(valor) {
+    return Math.round((valor + Number.EPSILON) * 100) / 100;
+}
+
+function numero(valor) {
+    const resultado = Number(valor);
+    return Number.isFinite(resultado) && resultado >= 0 ? resultado : 0;
+}
+
+function escapar(valor) {
+    return String(valor ?? "").replace(/[&<>"']/g, caracter => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+    })[caracter]);
+}
+
+function fechaLocal(fecha = new Date()) {
+    const anio = fecha.getFullYear();
+    const mes = String(fecha.getMonth() + 1).padStart(2, "0");
+    const dia = String(fecha.getDate()).padStart(2, "0");
+    return `${anio}-${mes}-${dia}`;
+}
+
+function mostrarFecha(valor) {
+    if (!valor) return "";
+    const [anio, mes, dia] = valor.split("-").map(Number);
+    return new Date(anio, mes - 1, dia).toLocaleDateString("es-MX", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
     });
+}
+
+function formatoHora(valor) {
+    if (!valor) return "";
+    const [hora, minutos] = valor.split(":");
+    const h = Number(hora);
+    return `${h % 12 || 12}:${minutos} ${h >= 12 ? "PM" : "AM"}`;
+}
+
+function avisar(texto, desplazar = false) {
+    $("mensaje").textContent = texto;
+    if (desplazar) {
+        $("mensaje").scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+        });
+    }
+}
+
+function cambiarBotonGenerar(ocupado) {
+    $("btnGenerar").disabled = ocupado;
+    $("btnGenerar").innerHTML = ocupado
+        ? "<span>Guardando…</span>"
+        : `<span>Generar recibo</span>
+           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+               <path d="M5 12h14M13 6l6 6-6 6"></path>
+           </svg>`;
+}
+
+function cambiarBotonCompartir(texto, deshabilitado = false) {
+    $("btnCompartir").disabled = deshabilitado;
+    $("btnCompartir").innerHTML = `
+        <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <path d="M12 15V3m-4 4 4-4 4 4M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"></path>
+        </svg>
+        <span>${escapar(texto)}</span>
+    `;
+}
+
+function obtenerPrendas(selector, especiales = false) {
+    return [...document.querySelectorAll(selector)]
+        .map(input => ({
+            nombre: input.dataset.nombre,
+            cantidad: numero(input.value),
+            ...(especiales ? { precio: numero(input.dataset.precio) } : {})
+        }))
+        .filter(prenda => prenda.cantidad > 0);
+}
+
+function obtenerCalculo() {
+    const servicio = $("servicio").value;
+    const kilos = numero($("kilos").value);
+    const precioKilo = PRECIOS_SERVICIO[servicio] || 0;
+    const prendasEspeciales = obtenerPrendas(".especial-jc", true);
+    const subtotalRopa = redondear(kilos * precioKilo);
+    const subtotalEspeciales = redondear(
+        prendasEspeciales.reduce(
+            (suma, prenda) => suma + prenda.cantidad * prenda.precio,
+            0
+        )
+    );
+    const tipoDomicilio = $("tipoDomicilio").value;
+    const precioDomicilio = tipoDomicilio
+        ? numero($("precioDomicilio").value)
+        : 0;
+
+    return {
+        servicio,
+        kilos,
+        precioKilo,
+        prendasEspeciales,
+        subtotalRopa,
+        subtotalEspeciales,
+        tipoDomicilio,
+        precioDomicilio,
+        subtotal: redondear(
+            subtotalRopa + subtotalEspeciales + precioDomicilio
+        )
+    };
+}
+
+function actualizarTotalVista() {
+    $("totalVista").textContent = dinero($("total").value);
 }
 
 function calcularTotal() {
-    if (totalModificadoManualmente) return;
-
-    const servicio = document.getElementById("servicio").value;
-    const kilos = parseFloat(document.getElementById("kilos").value) || 0;
-    let total = kilos * (PRECIOS_SERVICIO[servicio] || 0);
-
-    document.querySelectorAll(".especial-jc").forEach(input => {
-        const cant = parseInt(input.value) || 0;
-        const precio = parseInt(input.dataset.precio) || 0;
-        total += cant * precio;
-    });
-
-    const tipoDom = document.getElementById("tipoDomicilio")?.value;
-    const precioDom = parseFloat(document.getElementById("precioDomicilio")?.value) || 0;
-
-    if (tipoDom && precioDom > 0) {
-        total += precioDom;
+    if (!totalModificadoManualmente) {
+        $("total").value = obtenerCalculo().subtotal.toFixed(2);
     }
+    actualizarTotalVista();
+}
 
-    document.getElementById("total").value = total;
+function sincronizarDomicilio() {
+    const activo = Boolean($("tipoDomicilio").value);
+    $("precioDomicilio").disabled = !activo;
+    if (!activo) $("precioDomicilio").value = "0";
 }
 
 function activarCalculoAutomatico() {
-    const resetManual = () => totalModificadoManualmente = false;
-
-    document.getElementById("servicio").addEventListener("change", () => {
-        resetManual();
+    const recalcular = () => {
+        totalModificadoManualmente = false;
         calcularTotal();
-    });
+    };
 
-    document.getElementById("kilos").addEventListener("input", () => {
-        resetManual();
-        calcularTotal();
-    });
+    $("servicio").addEventListener("change", recalcular);
+    $("kilos").addEventListener("input", recalcular);
+    $("precioDomicilio").addEventListener("input", recalcular);
 
     document.querySelectorAll(".especial-jc").forEach(input => {
-        input.addEventListener("input", () => {
-            resetManual();
-            calcularTotal();
-        });
+        input.addEventListener("input", recalcular);
     });
 
-    const precioDom = document.getElementById("precioDomicilio");
-    if (precioDom) {
-        precioDom.addEventListener("input", () => {
-            resetManual();
-            calcularTotal();
-        });
-    }
+    $("tipoDomicilio").addEventListener("change", () => {
+        sincronizarDomicilio();
+        recalcular();
+    });
 
-    const tipoDom = document.getElementById("tipoDomicilio");
-    if (tipoDom) {
-        tipoDom.addEventListener("change", () => {
-            resetManual();
-            calcularTotal();
-        });
-    }
-
-    document.getElementById("total").addEventListener("input", () => {
+    $("total").addEventListener("input", () => {
         totalModificadoManualmente = true;
+        actualizarTotalVista();
     });
-}
 
-function mostrarFecha(fecha) {
-    if (!fecha) return "";
-    const [y, m, d] = fecha.split("-");
-    return `${d}-${m}-${y}`;
-}
-
-function formatoHora(hora24) {
-    if (!hora24) return "";
-    let [h, m] = hora24.split(":");
-    h = parseInt(h);
-    const ampm = h >= 12 ? "PM" : "AM";
-    return `${h % 12 || 12}:${m} ${ampm}`;
-}
-
-function fechaActual() {
-    return new Date().toLocaleDateString("es-MX");
-}
-
-function generarDetalleRopaNormal() {
-    let lista = [];
-    document.querySelectorAll(".ropa-normal").forEach(input => {
-        const cant = parseInt(input.value) || 0;
-        if (cant > 0) lista.push(`${input.dataset.nombre}: ${cant}`);
+    $("recalcular").addEventListener("click", () => {
+        recalcular();
+        avisar("Total actualizado con los precios del servicio.");
     });
-    return lista.length ? `<strong>Ropa normal:</strong><br>${lista.join("<br>")}` : "";
+
+    $("fechaIngreso").addEventListener("change", () => {
+        $("fechaEntrega").min = $("fechaIngreso").value;
+    });
+
+    $("formRecibo").addEventListener("submit", evento => {
+        evento.preventDefault();
+        generarRecibo();
+    });
+
+    sincronizarDomicilio();
+    calcularTotal();
 }
 
-function generarDetalleServicio() {
-    let detalle = [];
-    const servicio = document.getElementById("servicio").value;
-    const kilos = parseFloat(document.getElementById("kilos").value) || 0;
-    const precio = PRECIOS_SERVICIO[servicio];
+async function mostrarUltimoFolio() {
+    const valorInicial = $("folio").value;
 
-    if (kilos > 0) {
-        detalle.push(`<strong>${servicio}:</strong> ${kilos} kg × $${precio} = $${kilos * precio}`);
-    }
+    try {
+        const snapshot = await database.ref("recibos").once("value");
+        let mayor = 0;
 
-    const ropaNormal = generarDetalleRopaNormal();
-    if (ropaNormal) detalle.push(ropaNormal);
+        snapshot.forEach(child => {
+            const valor = String(child.val()?.folio ?? "");
+            if (/^\d+$/.test(valor)) {
+                const folio = Number(valor);
+                if (Number.isSafeInteger(folio)) {
+                    mayor = Math.max(mayor, folio);
+                }
+            }
+        });
 
-    let especiales = [];
-    document.querySelectorAll(".especial-jc").forEach(input => {
-        const cant = parseInt(input.value) || 0;
-        if (cant > 0) {
-            especiales.push(`${input.dataset.nombre}: ${cant} × $${input.dataset.precio} = $${cant * input.dataset.precio}`);
+        mayorFolioConocido = Math.max(mayorFolioConocido, mayor);
+        $("ultimoFolio").textContent =
+            `Último folio registrado: ${mayorFolioConocido}`;
+
+        if ($("folio").value === valorInicial && !guardando && !reciboActual) {
+            $("folio").value = mayorFolioConocido + 1;
         }
+    } catch (error) {
+        $("ultimoFolio").textContent =
+            "No se pudo consultar el último folio. Revisa el historial antes de asignarlo.";
+    }
+}
+
+function lineaServicio(titulo, descripcion, importe) {
+    return `
+        <div class="service-line">
+            <div>
+                <strong>${escapar(titulo)}</strong>
+                <small>${escapar(descripcion)}</small>
+            </div>
+            <span class="service-amount">${escapar(dinero(importe))}</span>
+        </div>
+    `;
+}
+
+function generarDetalleServicio(calculo, prendasNormales, total, lavadas) {
+    let html = "";
+
+    if (calculo.kilos > 0) {
+        html += lineaServicio(
+            `Servicio ${calculo.servicio}`,
+            `${calculo.kilos} kg × ${dinero(calculo.precioKilo)}`,
+            calculo.subtotalRopa
+        );
+    }
+
+    if (prendasNormales.length) {
+        html += `
+            <div class="clothes-detail">
+                <strong>Prendas recibidas por kilo</strong>
+                ${prendasNormales.map(prenda =>
+                    `${escapar(prenda.nombre)}: ${prenda.cantidad}`
+                ).join(" · ")}
+            </div>
+        `;
+    }
+
+    calculo.prendasEspeciales.forEach(prenda => {
+        html += lineaServicio(
+            prenda.nombre,
+            `${prenda.cantidad} × ${dinero(prenda.precio)}`,
+            redondear(prenda.cantidad * prenda.precio)
+        );
     });
 
-    if (especiales.length) {
-        detalle.push(`<strong>Prendas especiales:</strong><br>${especiales.join("<br>")}`);
+    if (calculo.tipoDomicilio) {
+        html += lineaServicio(
+            "Servicio a domicilio",
+            calculo.tipoDomicilio,
+            calculo.precioDomicilio
+        );
     }
 
-    const tipoDom = document.getElementById("tipoDomicilio")?.value;
-    const precioDom = parseFloat(document.getElementById("precioDomicilio")?.value) || 0;
+    const ajuste = redondear(total - calculo.subtotal);
 
-    if (tipoDom && precioDom > 0) {
-        detalle.push(`<strong>Servicio a domicilio:</strong><br>${tipoDom}<br>Costo: $${precioDom}`);
+    if (ajuste !== 0) {
+        html += lineaServicio(
+            ajuste < 0 ? "Descuento aplicado" : "Ajuste de importe",
+            "Ajuste manual del total",
+            ajuste
+        );
     }
 
-    return detalle.join("<br><br>");
+    if (lavadas > 0) {
+        html += `
+            <div class="clothes-detail">
+                <strong>Lavadas acumuladas: ${lavadas}</strong>
+            </div>
+        `;
+    }
+
+    return html;
 }
 
-function enviarDatosAFirebase(data) {
-    database.ref("recibos").push(data);
+function validarFormulario() {
+    const formulario = $("formRecibo");
+
+    if (!formulario.reportValidity()) return false;
+
+    if (!$("cliente").value.trim()) {
+        avisar("Escribe el nombre del cliente.", true);
+        $("cliente").focus();
+        return false;
+    }
+
+    if (!$("folio").value.trim()) {
+        avisar("Ingresa el folio del recibo.", true);
+        $("folio").focus();
+        return false;
+    }
+
+    if ($("fechaEntrega").value < $("fechaIngreso").value) {
+        avisar("La fecha de entrega no puede ser anterior al ingreso.", true);
+        $("fechaEntrega").focus();
+        return false;
+    }
+
+    const calculo = obtenerCalculo();
+
+    if (calculo.kilos === 0 && calculo.prendasEspeciales.length === 0) {
+        avisar("Agrega kilos de ropa o al menos una prenda especial.", true);
+        $("kilos").focus();
+        return false;
+    }
+
+    if (calculo.kilos === 0 && obtenerPrendas(".ropa-normal").length > 0) {
+        avisar("Captura el peso de las prendas que se cobran por kilo.", true);
+        $("kilos").focus();
+        return false;
+    }
+
+    return true;
 }
 
-function generarRecibo() {
-    const cliente = document.getElementById("cliente").value.trim();
-    if (!cliente) {
-        alert("Ingresa el nombre del cliente");
+function obtenerDatos() {
+    const calculo = obtenerCalculo();
+    const prendasNormales = obtenerPrendas(".ropa-normal");
+    const total = redondear(numero($("total").value));
+    const lavadas = numero($("lavadas").value);
+
+    return {
+        cliente: $("cliente").value.trim(),
+        folio: $("folio").value.trim(),
+        servicio: calculo.servicio,
+        kilos: String(calculo.kilos),
+        total: total.toFixed(2),
+        estado: $("estado").value.toLowerCase(),
+        metodoPago: $("metodoPago").value.toLowerCase(),
+        fechaIngreso: $("fechaIngreso").value,
+        fechaEntrega: $("fechaEntrega").value,
+        horaEntrega: formatoHora($("horaEntrega").value),
+        detalleServicio: generarDetalleServicio(
+            calculo,
+            prendasNormales,
+            total,
+            lavadas
+        ),
+        lavadas,
+        prendasNormales,
+        prendasEspeciales: calculo.prendasEspeciales,
+        tipoDomicilio: calculo.tipoDomicilio,
+        precioDomicilio: calculo.precioDomicilio,
+        subtotalCalculado: calculo.subtotal,
+        ajusteManual: redondear(total - calculo.subtotal)
+    };
+}
+
+function mostrarRecibo(data) {
+    $("fechaRecibo").textContent = mostrarFecha(data.fechaEmision);
+    $("folioRecibo").textContent = data.folio;
+    $("clienteRecibo").textContent = data.cliente;
+    $("detalleServicio").innerHTML = data.detalleServicio;
+    $("totalRecibo").textContent = Number(data.total).toLocaleString("es-MX", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+
+    $("estadoRecibo").textContent =
+        data.estado === "pagado" ? "Pagado" : "Pendiente";
+
+    $("estadoRecibo").dataset.estado = data.estado;
+    $("estadoRecibo").classList.toggle("pagado", data.estado === "pagado");
+    $("estadoRecibo").classList.toggle("pendiente", data.estado !== "pagado");
+
+    $("pagoRecibo").textContent =
+        data.metodoPago === "transferencia" ? "Transferencia" : "Efectivo";
+
+    $("entregaRecibo").textContent =
+        `${mostrarFecha(data.fechaEntrega)} · ${data.horaEntrega}`;
+
+    $("resultado").classList.remove("hidden");
+    $("recibo").classList.remove("hidden");
+    $("btnCompartir").classList.remove("hidden");
+
+    $("resultado").scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
+}
+
+async function generarRecibo() {
+    if (guardando || compartiendo || preparandoImagen) return;
+
+    if (!database) {
+        avisar("No se pudo conectar con Firebase. Recarga la página.", true);
         return;
     }
 
-    const data = {
-        cliente,
-        folio: document.getElementById("folio").value,
-        servicio: document.getElementById("servicio").value,
-        kilos: document.getElementById("kilos").value,
-        total: document.getElementById("total").value,
-        estado: document.getElementById("estado").value.toLowerCase(),
-        metodoPago: document.getElementById("metodoPago").value.toLowerCase(),
-        fechaIngreso: document.getElementById("fechaIngreso").value,
-        fechaEntrega: document.getElementById("fechaEntrega").value,
-        horaEntrega: formatoHora(document.getElementById("horaEntrega").value),
-        detalleServicio: generarDetalleServicio()
-    };
+    if (!validarFormulario()) return;
 
-    enviarDatosAFirebase(data);
+    const datos = obtenerDatos();
+    const contenido = JSON.stringify(datos);
 
-    document.getElementById("fechaRecibo").textContent = fechaActual();
-    document.getElementById("folioRecibo").textContent = data.folio;
-    document.getElementById("clienteRecibo").textContent = data.cliente;
-    document.getElementById("detalleServicio").innerHTML = data.detalleServicio;
-    document.getElementById("totalRecibo").textContent = data.total;
-    document.getElementById("estadoRecibo").textContent = data.estado;
-    document.getElementById("pagoRecibo").textContent = data.metodoPago;
-    document.getElementById("entregaRecibo").textContent = `${mostrarFecha(data.fechaEntrega)} ${data.horaEntrega}`;
+    if (contenido === ultimoContenidoGuardado) {
+        avisar("Este recibo ya está guardado. Puedes compartirlo abajo.");
+        $("resultado").scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+        return;
+    }
 
-    document.getElementById("recibo").classList.remove("hidden");
-    document.getElementById("btnCompartir").classList.remove("hidden");
-    document.getElementById("recibo").scrollIntoView({ behavior: "smooth" });
+    if (reciboActual && datos.folio === reciboActual.folio) {
+        avisar(
+            "Este folio ya se guardó. Para crear otro recibo, ingresa un folio nuevo. Para modificar el anterior, entra al historial.",
+            true
+        );
+        return;
+    }
+
+    guardando = true;
+    cambiarBotonGenerar(true);
+    avisar("Guardando recibo. Espera la confirmación antes de cerrar esta página.");
+
+    try {
+        if (!solicitudPendiente || solicitudPendiente.contenido !== contenido) {
+            solicitudPendiente = {
+                contenido,
+                referencia: database.ref("recibos").push(),
+                datos: {
+                    ...datos,
+                    fechaEmision: fechaLocal(),
+                    creadoEn: Date.now()
+                }
+            };
+        }
+
+        await solicitudPendiente.referencia.set(solicitudPendiente.datos);
+
+        reciboActual = solicitudPendiente.datos;
+        ultimoContenidoGuardado = contenido;
+        solicitudPendiente = null;
+        archivoRecibo = null;
+
+        if (/^\d+$/.test(reciboActual.folio)) {
+            mayorFolioConocido = Math.max(
+                mayorFolioConocido,
+                Number(reciboActual.folio)
+            );
+            $("ultimoFolio").textContent =
+                `Último folio registrado: ${mayorFolioConocido}`;
+        }
+
+        mostrarRecibo(reciboActual);
+        avisar("Recibo guardado correctamente.");
+        await prepararImagenRecibo();
+    } catch (error) {
+        avisar(
+            "No se pudo confirmar el guardado. Verifica tu conexión y vuelve a intentar con los mismos datos.",
+            true
+        );
+    } finally {
+        guardando = false;
+        cambiarBotonGenerar(false);
+    }
 }
 
-function compartirRecibo() {
-    const recibo = document.getElementById("recibo");
+function esperarImagen(imagen) {
+    if (imagen.complete) {
+        return imagen.naturalWidth > 0
+            ? Promise.resolve()
+            : Promise.reject(new Error("No se pudo cargar una imagen del recibo."));
+    }
 
-    html2canvas(recibo, { scale: 3, backgroundColor: "#fff" }).then(canvas => {
-        canvas.toBlob(blob => {
-            const archivo = new File(
-                [blob],
-                `recibo_lavanderia_jc_${Date.now()}.png`,
-                { type: "image/png" }
-            );
+    return new Promise((resolve, reject) => {
+        const limpiar = () => {
+            clearTimeout(temporizador);
+            imagen.removeEventListener("load", cargada);
+            imagen.removeEventListener("error", fallida);
+        };
 
-            if (navigator.share) {
-                navigator.share({
-                    files: [archivo],
-                    title: "Recibo - Lavandería JC",
-                    text: "Gracias por su preferencia este es su recibo del día de hoy🧺"
-                });
-            } else {
-                const link = document.createElement("a");
-                link.download = archivo.name;
-                link.href = canvas.toDataURL("image/png");
-                link.click();
-            }
-        });
+        const cargada = () => {
+            limpiar();
+            resolve();
+        };
+
+        const fallida = () => {
+            limpiar();
+            reject(new Error("No se pudo cargar una imagen del recibo."));
+        };
+
+        const temporizador = setTimeout(fallida, 15000);
+
+        imagen.addEventListener("load", cargada);
+        imagen.addEventListener("error", fallida);
     });
+}
+
+async function crearArchivoRecibo() {
+    if (typeof html2canvas !== "function") {
+        throw new Error("No se cargó el generador de imágenes.");
+    }
+
+    const recibo = $("recibo");
+
+    await Promise.all(
+        [...recibo.querySelectorAll("img")].map(esperarImagen)
+    );
+
+    if (document.fonts?.ready) await document.fonts.ready;
+
+    const canvas = await html2canvas(recibo, {
+        scale: 3,
+        backgroundColor: "#ffffff",
+        useCORS: true,
+        logging: false,
+        onclone: documento => {
+            const copia = documento.getElementById("recibo");
+            copia.style.boxShadow = "none";
+            copia.style.margin = "0";
+        }
+    });
+
+    const blob = await new Promise((resolve, reject) => {
+        canvas.toBlob(resultado => {
+            if (resultado) resolve(resultado);
+            else reject(new Error("No se pudo generar la imagen."));
+        }, "image/png");
+    });
+
+    const folio = reciboActual.folio.replace(/[^a-zA-Z0-9_-]/g, "") || "JC";
+
+    return new File([blob], `Lavanderia_JC_Recibo_${folio}.png`, {
+        type: "image/png"
+    });
+}
+
+async function prepararImagenRecibo() {
+    if (preparandoImagen) return preparandoImagen;
+
+    cambiarBotonCompartir("Preparando imagen…", true);
+
+    preparandoImagen = (async () => {
+        try {
+            archivoRecibo = await crearArchivoRecibo();
+            cambiarBotonCompartir("Compartir recibo");
+            return archivoRecibo;
+        } catch (error) {
+            archivoRecibo = null;
+            cambiarBotonCompartir("Volver a preparar imagen");
+            avisar(
+                "El recibo está guardado, pero no se pudo preparar su imagen. Verifica tu conexión y que exista imagenes/QR.png."
+            );
+            return null;
+        }
+    })();
+
+    try {
+        return await preparandoImagen;
+    } finally {
+        preparandoImagen = null;
+    }
+}
+
+function descargarArchivo(archivo) {
+    const url = URL.createObjectURL(archivo);
+    const enlace = document.createElement("a");
+
+    enlace.href = url;
+    enlace.download = archivo.name;
+    document.body.appendChild(enlace);
+    enlace.click();
+    enlace.remove();
+
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
+}
+
+async function compartirRecibo() {
+    if (compartiendo || preparandoImagen || !reciboActual) return;
+
+    if (!archivoRecibo) {
+        const preparado = await prepararImagenRecibo();
+        if (preparado) {
+            avisar("Imagen lista. Toca Compartir recibo para enviarla.");
+        }
+        return;
+    }
+
+    compartiendo = true;
+    cambiarBotonCompartir("Compartiendo…", true);
+
+    try {
+        const puedeCompartir =
+            typeof navigator.share === "function" &&
+            typeof navigator.canShare === "function" &&
+            navigator.canShare({ files: [archivoRecibo] });
+
+        if (puedeCompartir) {
+            await navigator.share({
+                files: [archivoRecibo],
+                title: `Recibo ${reciboActual.folio} · Lavandería JC`,
+                text: "Gracias por tu preferencia. Conserva este recibo para recoger tu ropa."
+            });
+        } else {
+            descargarArchivo(archivoRecibo);
+            avisar(
+                "Se inició la descarga del recibo. Puedes adjuntar la imagen en WhatsApp."
+            );
+        }
+    } catch (error) {
+        if (error.name !== "AbortError") {
+            descargarArchivo(archivoRecibo);
+            avisar(
+                "No se pudo abrir el menú para compartir. Se inició la descarga de la imagen."
+            );
+        }
+    } finally {
+        compartiendo = false;
+        cambiarBotonCompartir("Compartir recibo");
+    }
+}
+
+function iniciar() {
+    const clave = window.prompt(
+        "Apartado solo para administradores. Ingresa la contraseña:"
+    );
+
+    if (clave !== "costa2025") {
+        if (clave !== null) window.alert("Contraseña incorrecta.");
+        window.location.replace("index.html");
+        return;
+    }
+
+    document.body.style.display = "flex";
+
+    const hoy = fechaLocal();
+    $("fechaIngreso").value = hoy;
+    $("fechaEntrega").min = hoy;
+
+    activarCalculoAutomatico();
+
+    try {
+        if (typeof firebase === "undefined") {
+            throw new Error("Firebase no está disponible.");
+        }
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+
+        database = firebase.database();
+        mostrarUltimoFolio();
+    } catch (error) {
+        $("ultimoFolio").textContent = "Conexión no disponible.";
+        $("btnGenerar").disabled = true;
+        avisar(
+            "No se pudo cargar la conexión. Revisa tu internet y recarga esta página."
+        );
+    }
+}
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", iniciar, { once: true });
+} else {
+    iniciar();
 }

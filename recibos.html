@@ -1,232 +1,541 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<link rel="icon" type="image/png" href="imagenes/favicon.png" />
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Crear Recibos - Lavandería JC</title>
-
-<link rel="stylesheet" href="recibos.css">
-
-<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
-<script src="recibos.js" defer></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#102b46">
+    <meta name="color-scheme" content="light">
+    <title>Recibos | Lavandería JC</title>
+    <link rel="icon" type="image/png" href="imagenes/favicon.png">
+    <link rel="stylesheet" href="recibos.css?v=3">
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+    <script src="recibos.js?v=3" defer></script>
 </head>
 
 <body>
-
-<div class="container">
-
-<h3>Datos del Recibo</h3>
-<p id="ultimoFolio" class="ultimo-folio"></p>
-
-<label>Nombre del Cliente:</label>
-<input type="text" id="cliente" required>
-
-<label>Servicio:</label>
-<select id="servicio">
-<option value="Básico">Básico</option>
-<option value="Premium">Premium</option>
-<option value="Express">Express</option>
-</select>
-
-<label>Kilos de ropa:</label>
-<input type="number" id="kilos" min="0" step="0.1" required>
-
-<label>Lavadas acumuladas:</label>
-<input type="number" id="lavadas" min="0" max="7" value="0">
-
-<label>Folio:</label>
-<input type="text" id="folio" required>
-
-<label>Fecha de ingreso:</label>
-<input type="date" id="fechaIngreso" required>
-
-<label>Total a pagar:</label>
-<input type="number" id="total" min="0">
-
-<label>Fecha de entrega:</label>
-<input type="date" id="fechaEntrega" required>
-
-<label>Hora de entrega:</label>
-<input type="time" id="horaEntrega" required>
-
-<hr>
-
-<details open>
-<summary><strong>🧺 Ropa normal (incluida en el kilo)</strong></summary>
-
-<div class="ropa-formulario">
-
-<label>👕 Playeras:</label>
-<input type="number" class="ropa-normal" data-nombre="Playeras" value="0">
-
-<label>👖 Pantalones:</label>
-<input type="number" class="ropa-normal" data-nombre="Pantalones" value="0">
-
-<label>🩳 Shorts:</label>
-<input type="number" class="ropa-normal" data-nombre="Shorts" value="0">
-
-<label>👔 Camisas:</label>
-<input type="number" class="ropa-normal" data-nombre="Camisas" value="0">
-
-<label>🧥 Suéter:</label>
-<input type="number" class="ropa-normal" data-nombre="Suéter" value="0">
-
-<label>🧦 Calcetines:</label>
-<input type="number" class="ropa-normal" data-nombre="Calcetines" value="0">
-
-<label>👗 Vestidos:</label>
-<input type="number" class="ropa-normal" data-nombre="Vestidos" value="0">
-
-<label>🧢 Gorras:</label>
-<input type="number" class="ropa-normal" data-nombre="Gorras" value="0">
-
-<label>👚 Blusas:</label>
-<input type="number" class="ropa-normal" data-nombre="Blusas" value="0">
-
-<label>👒 Faldas:</label>
-<input type="number" class="ropa-normal" data-nombre="Faldas" value="0">
-
-<label>🦺 Chalecos:</label>
-<input type="number" class="ropa-normal" data-nombre="Chalecos" value="0">
-
-<label>🎒 Mochilas:</label>
-<input type="number" class="ropa-normal" data-nombre="Mochilas" value="0">
-
-<label>🩲 Boxers:</label>
-<input type="number" class="ropa-normal" data-nombre="Boxers" value="0">
-
-</div>
-</details>
-
-<hr>
-
-<details>
-<summary><strong>🛏️ Prendas especiales (precio fijo)</strong></summary>
-
-<div class="ropa-formulario">
-
-<label>👟 Tenis ($70):</label>
-<input type="number" class="especial-jc" data-nombre="Tenis" data-precio="70" value="0">
-
-<label>🛁 Toalla ($30):</label>
-<input type="number" class="especial-jc" data-nombre="Toalla" data-precio="30" value="0">
-
-<label>🛏️ Sábanas ($15):</label>
-<input type="number" class="especial-jc" data-nombre="Sábanas" data-precio="15" value="0">
-
-<label>🛌 Edredón Ind ($60):</label>
-<input type="number" class="especial-jc" data-nombre="Edredón Ind" data-precio="60" value="0">
-
-<label>🛌 Edredón Mat ($80):</label>
-<input type="number" class="especial-jc" data-nombre="Edredón Mat" data-precio="80" value="0">
-
-<label>🛌 Edredón King ($100):</label>
-<input type="number" class="especial-jc" data-nombre="Edredón King" data-precio="100" value="0">
-
-<label>🛏️ Almohadas ($50):</label>
-<input type="number" class="especial-jc" data-nombre="Almohadas" data-precio="50" value="0">
-
-</div>
-</details>
-
-<hr>
-
-<details>
-<summary><strong>🚚 Servicio a domicilio</strong></summary>
-
-<label>Tipo de servicio:</label>
-<select id="tipoDomicilio">
-<option value="">Ninguno</option>
-<option value="Ir a recoger">Ir a recoger</option>
-<option value="Ir a entregar">Ir a entregar</option>
-<option value="Viaje redondo">Viaje redondo</option>
-</select>
-
-<label>Costo del servicio ($):</label>
-<input type="number" id="precioDomicilio" min="0" value="0">
-
-</details>
-
-<hr>
-
-<label>Estado del recibo:</label>
-<select id="estado">
-<option value="Pendiente">Pendiente</option>
-<option value="Pagado">Pagado</option>
-</select>
-
-<label>Método de pago:</label>
-<select id="metodoPago">
-<option value="Efectivo">Efectivo</option>
-<option value="Transferencia">Transferencia</option>
-</select>
-
-<button onclick="generarRecibo()">Generar Recibo</button>
-<button onclick="window.location.href='index.html'">Regresar a Inicio</button>
-<button onclick="window.location.href='datos.html'">Ver Datos</button>
-
-</div>
-
-<div id="recibo" class="hidden">
-
-<div class="recibo-header">
-
-<img src="imagenes/favicon.png" class="recibo-logo">
-
-<div class="titulo-recibo">
-<h2>LAVANDERÍA JC</h2>
-
-<p class="direccion-recibo">
-Av. Ignacio Zaragoza 2157, Puerto Escondido, Oax.
-</p>
-
-<p>Fecha: <span id="fechaRecibo"></span></p>
-</div>
-
-</div>
-
-<hr>
-
-<p><strong>Folio:</strong> <span id="folioRecibo"></span></p>
-
-<p><strong>Cliente:</strong> <span id="clienteRecibo"></span></p>
-
-<p><strong>Detalle del servicio:</strong></p>
-
-<div id="detalleServicio"></div>
-
-<hr>
-
-<p class="total">Total a pagar: $<span id="totalRecibo"></span></p>
-
-<p><strong>Estado:</strong> <span id="estadoRecibo"></span></p>
-
-<p><strong>Método de pago:</strong> <span id="pagoRecibo"></span></p>
-
-<p><strong>Entrega:</strong> <span id="entregaRecibo"></span></p>
-
-<hr>
-
-<p id="leyendaRecibo">
-Usted acepta que, presentara este recibo para recibir su ropa.
-<br>
-Sin el NO podemos entregarla, Gracias.
-</p>
-
-<p class="gracias">Gracias por su preferencia 🙌</p>
-
-<p class="telefono">Tel: 954 183 3850</p>
-
-</div>
-
-<button id="btnCompartir" class="hidden" onclick="compartirRecibo()">
-📤 Compartir recibo
-</button>
-
+    <header class="app-header">
+        <a href="index.html" class="brand" aria-label="Ir al inicio">
+            <span class="brand-logo">
+                <img src="imagenes/favicon.png" alt="" width="44" height="44">
+            </span>
+            <span class="brand-text">
+                <strong>LAVANDERÍA JC</strong>
+                <small>Panel de atención</small>
+            </span>
+        </a>
+
+        <a href="datos.html" class="history-link">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <path d="M4 5v5h5"></path>
+                <path d="M4.5 10a8 8 0 1 1 .7 6"></path>
+                <path d="M12 7v5l3 2"></path>
+            </svg>
+            <span>Historial</span>
+        </a>
+    </header>
+
+    <main class="container">
+        <section class="welcome-card">
+            <div class="welcome-copy">
+                <span class="eyebrow">CADA DETALLE CUENTA</span>
+                <h1>Nuevo recibo<span>.</span></h1>
+                <p>Tu atención de siempre.<br>Una presentación extraordinaria.</p>
+            </div>
+
+            <div class="welcome-art" aria-hidden="true">
+                <div class="art-orbit orbit-one"></div>
+                <div class="art-orbit orbit-two"></div>
+                <img src="imagenes/favicon.png" alt="" width="112" height="112">
+                <span class="art-spark spark-one">✦</span>
+                <span class="art-spark spark-two">✦</span>
+            </div>
+
+            <div class="welcome-footer">
+                <span class="status-dot"></span>
+                <span>Registro de servicios</span>
+                <span class="welcome-tag">JC · RECIBOS</span>
+            </div>
+        </section>
+
+        <form id="formRecibo">
+            <section class="card">
+                <div class="section-heading">
+                    <span class="section-number">01</span>
+                    <div>
+                        <h2>¿A quién atendemos?</h2>
+                        <p>Datos del cliente y su comprobante.</p>
+                    </div>
+                </div>
+
+                <div class="folio-notice">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path d="M7 3h10v18l-2.5-1.5L12 21l-2.5-1.5L7 21z"></path>
+                        <path d="M10 8h4M10 12h4"></path>
+                    </svg>
+                    <p id="ultimoFolio" class="ultimo-folio" aria-live="polite">Consultando último folio…</p>
+                </div>
+
+                <div class="field">
+                    <label for="cliente">Nombre del cliente</label>
+                    <input type="text" id="cliente" placeholder="Escribe su nombre completo" autocomplete="name" maxlength="120" required>
+                </div>
+
+                <div class="field-grid">
+                    <div class="field">
+                        <label for="folio">Folio del recibo</label>
+                        <input type="text" id="folio" inputmode="numeric" placeholder="0000" maxlength="30" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="fechaIngreso">Fecha de ingreso</label>
+                        <input type="date" id="fechaIngreso" required>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card">
+                <div class="section-heading">
+                    <span class="section-number">02</span>
+                    <div>
+                        <h2>El cuidado que necesita</h2>
+                        <p>Selecciona el servicio y registra el peso.</p>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="servicio">Tipo de servicio</label>
+                    <select id="servicio">
+                        <option value="Básico">Básico · $20 por kg</option>
+                        <option value="Premium">Premium · $25 por kg</option>
+                        <option value="Express">Express · $30 por kg</option>
+                    </select>
+                </div>
+
+                <div class="field-grid">
+                    <div class="field">
+                        <label for="kilos">Peso de la ropa</label>
+                        <div class="input-unit">
+                            <input type="number" id="kilos" min="0" step="0.1" value="0" inputmode="decimal" required>
+                            <span>kg</span>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="lavadas">Lavadas acumuladas</label>
+                        <input type="number" id="lavadas" min="0" max="7" step="1" value="0" inputmode="numeric">
+                    </div>
+                </div>
+
+                <div class="soft-note">
+                    Las prendas especiales se cobran por pieza y se agregan al total.
+                </div>
+            </section>
+
+            <section class="card garments-card">
+                <div class="section-heading">
+                    <span class="section-number">03</span>
+                    <div>
+                        <h2>Cada prenda, registrada</h2>
+                        <p>Abre una categoría para capturar cantidades.</p>
+                    </div>
+                </div>
+
+                <details class="garment-group">
+                    <summary>
+                        <span class="category-icon">👕</span>
+                        <span class="category-copy">
+                            <strong>Ropa por kilo</strong>
+                            <small>Conteo de prendas incluidas</small>
+                        </span>
+                        <span class="summary-chevron" aria-hidden="true">⌄</span>
+                    </summary>
+
+                    <div class="ropa-formulario">
+                        <div class="garment-row">
+                            <label for="ropaPlayeras">Playeras</label>
+                            <input type="number" id="ropaPlayeras" class="ropa-normal" data-nombre="Playeras" min="0" step="1" value="0" inputmode="numeric">
+                        </div>
+                        <div class="garment-row">
+                            <label for="ropaPantalones">Pantalones</label>
+                            <input type="number" id="ropaPantalones" class="ropa-normal" data-nombre="Pantalones" min="0" step="1" value="0" inputmode="numeric">
+                        </div>
+                        <div class="garment-row">
+                            <label for="ropaShorts">Shorts</label>
+                            <input type="number" id="ropaShorts" class="ropa-normal" data-nombre="Shorts" min="0" step="1" value="0" inputmode="numeric">
+                        </div>
+                        <div class="garment-row">
+                            <label for="ropaCamisas">Camisas</label>
+                            <input type="number" id="ropaCamisas" class="ropa-normal" data-nombre="Camisas" min="0" step="1" value="0" inputmode="numeric">
+                        </div>
+                        <div class="garment-row">
+                            <label for="ropaSueter">Suéteres</label>
+                            <input type="number" id="ropaSueter" class="ropa-normal" data-nombre="Suéter" min="0" step="1" value="0" inputmode="numeric">
+                        </div>
+                        <div class="garment-row">
+                            <label for="ropaCalcetines">Calcetines</label>
+                            <input type="number" id="ropaCalcetines" class="ropa-normal" data-nombre="Calcetines" min="0" step="1" value="0" inputmode="numeric">
+                        </div>
+                        <div class="garment-row">
+                            <label for="ropaVestidos">Vestidos</label>
+                            <input type="number" id="ropaVestidos" class="ropa-normal" data-nombre="Vestidos" min="0" step="1" value="0" inputmode="numeric">
+                        </div>
+                        <div class="garment-row">
+                            <label for="ropaGorras">Gorras</label>
+                            <input type="number" id="ropaGorras" class="ropa-normal" data-nombre="Gorras" min="0" step="1" value="0" inputmode="numeric">
+                        </div>
+                        <div class="garment-row">
+                            <label for="ropaBlusas">Blusas</label>
+                            <input type="number" id="ropaBlusas" class="ropa-normal" data-nombre="Blusas" min="0" step="1" value="0" inputmode="numeric">
+                        </div>
+                        <div class="garment-row">
+                            <label for="ropaFaldas">Faldas</label>
+                            <input type="number" id="ropaFaldas" class="ropa-normal" data-nombre="Faldas" min="0" step="1" value="0" inputmode="numeric">
+                        </div>
+                        <div class="garment-row">
+                            <label for="ropaChalecos">Chalecos</label>
+                            <input type="number" id="ropaChalecos" class="ropa-normal" data-nombre="Chalecos" min="0" step="1" value="0" inputmode="numeric">
+                        </div>
+                        <div class="garment-row">
+                            <label for="ropaMochilas">Mochilas</label>
+                            <input type="number" id="ropaMochilas" class="ropa-normal" data-nombre="Mochilas" min="0" step="1" value="0" inputmode="numeric">
+                        </div>
+                        <div class="garment-row">
+                            <label for="ropaBoxers">Boxers</label>
+                            <input type="number" id="ropaBoxers" class="ropa-normal" data-nombre="Boxers" min="0" step="1" value="0" inputmode="numeric">
+                        </div>
+                    </div>
+                </details>
+
+                <details class="garment-group">
+                    <summary>
+                        <span class="category-icon category-special">🛏️</span>
+                        <span class="category-copy">
+                            <strong>Prendas especiales</strong>
+                            <small>Precio individual por pieza</small>
+                        </span>
+                        <span class="summary-chevron" aria-hidden="true">⌄</span>
+                    </summary>
+
+                    <div class="ropa-formulario">
+                        <div class="garment-row">
+                            <label for="especialTenis">Tenis <small>$70 por pieza</small></label>
+                            <input type="number" id="especialTenis" class="especial-jc" data-nombre="Tenis" data-precio="70" min="0" step="1" value="0" inputmode="numeric">
+                        </div>
+                        <div class="garment-row">
+                            <label for="especialToalla">Toalla <small>$30 por pieza</small></label>
+                            <input type="number" id="especialToalla" class="especial-jc" data-nombre="Toalla" data-precio="30" min="0" step="1" value="0" inputmode="numeric">
+                        </div>
+                        <div class="garment-row">
+                            <label for="especialSabanas">Sábanas <small>$15 por pieza</small></label>
+                            <input type="number" id="especialSabanas" class="especial-jc" data-nombre="Sábanas" data-precio="15" min="0" step="1" value="0" inputmode="numeric">
+                        </div>
+                        <div class="garment-row">
+                            <label for="especialIndividual">Edredón individual <small>$60 por pieza</small></label>
+                            <input type="number" id="especialIndividual" class="especial-jc" data-nombre="Edredón Ind" data-precio="60" min="0" step="1" value="0" inputmode="numeric">
+                        </div>
+                        <div class="garment-row">
+                            <label for="especialMatrimonial">Edredón matrimonial <small>$80 por pieza</small></label>
+                            <input type="number" id="especialMatrimonial" class="especial-jc" data-nombre="Edredón Mat" data-precio="80" min="0" step="1" value="0" inputmode="numeric">
+                        </div>
+                        <div class="garment-row">
+                            <label for="especialKing">Edredón king <small>$100 por pieza</small></label>
+                            <input type="number" id="especialKing" class="especial-jc" data-nombre="Edredón King" data-precio="100" min="0" step="1" value="0" inputmode="numeric">
+                        </div>
+                        <div class="garment-row">
+                            <label for="especialAlmohadas">Almohadas <small>$50 por pieza</small></label>
+                            <input type="number" id="especialAlmohadas" class="especial-jc" data-nombre="Almohadas" data-precio="50" min="0" step="1" value="0" inputmode="numeric">
+                        </div>
+                    </div>
+                </details>
+            </section>
+
+            <section class="card">
+                <div class="section-heading">
+                    <span class="section-number">04</span>
+                    <div>
+                        <h2>Lista para su entrega</h2>
+                        <p>Define cuándo y cómo recibirá su ropa.</p>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="fechaEntrega">Fecha de entrega</label>
+                    <input type="date" id="fechaEntrega" required>
+                </div>
+
+                <div class="field">
+                    <label for="horaEntrega">Hora de entrega</label>
+                    <input type="time" id="horaEntrega" required>
+                </div>
+
+                <details class="garment-group delivery-group">
+                    <summary>
+                        <span class="category-icon category-delivery">🚚</span>
+                        <span class="category-copy">
+                            <strong>Servicio a domicilio</strong>
+                            <small>Agrega recolección o entrega</small>
+                        </span>
+                        <span class="summary-chevron" aria-hidden="true">⌄</span>
+                    </summary>
+
+                    <div class="delivery-fields">
+                        <div class="field">
+                            <label for="tipoDomicilio">Tipo de traslado</label>
+                            <select id="tipoDomicilio">
+                                <option value="">Sin servicio a domicilio</option>
+                                <option value="Ir a recoger">Ir a recoger</option>
+                                <option value="Ir a entregar">Ir a entregar</option>
+                                <option value="Viaje redondo">Viaje redondo</option>
+                            </select>
+                        </div>
+
+                        <div class="field">
+                            <label for="precioDomicilio">Costo del traslado</label>
+                            <div class="input-unit input-money">
+                                <span>$</span>
+                                <input type="number" id="precioDomicilio" min="0" step="0.01" value="0" inputmode="decimal">
+                            </div>
+                        </div>
+                    </div>
+                </details>
+            </section>
+
+            <section class="card payment-card">
+                <div class="section-heading">
+                    <span class="section-number">05</span>
+                    <div>
+                        <h2>Todo en orden</h2>
+                        <p>Confirma el importe y el estado del pago.</p>
+                    </div>
+                </div>
+
+                <div class="field-grid">
+                    <div class="field">
+                        <label for="estado">Estado del pago</label>
+                        <select id="estado">
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="Pagado">Pagado</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label for="metodoPago">Método de pago</label>
+                        <select id="metodoPago">
+                            <option value="Efectivo">Efectivo</option>
+                            <option value="Transferencia">Transferencia</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="total-editor">
+                    <label for="total">Importe final</label>
+                    <div class="total-input-wrap">
+                        <span>$</span>
+                        <input type="number" id="total" min="0" step="0.01" value="0" inputmode="decimal" required>
+                        <small>MXN</small>
+                    </div>
+                    <p>Calculado con el servicio, las prendas especiales y el traslado. Puedes ajustar el importe.</p>
+                    <button type="button" id="recalcular" class="text-button">Restablecer cálculo automático</button>
+                </div>
+            </section>
+
+            <p id="mensaje" class="form-message" role="status" aria-live="polite"></p>
+
+            <div class="bottom-bar">
+                <div class="bottom-total">
+                    <small>Total del servicio</small>
+                    <strong id="totalVista">$0.00</strong>
+                    <span>Pesos mexicanos</span>
+                </div>
+
+                <button type="button" id="btnGenerar" class="primary-button" onclick="generarRecibo()">
+                    <span>Generar recibo</span>
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path d="M5 12h14M13 6l6 6-6 6"></path>
+                    </svg>
+                </button>
+            </div>
+        </form>
+
+        <section id="resultado" class="result-area hidden" aria-labelledby="tituloResultado">
+            <div class="preview-heading">
+                <span class="success-label">
+                    <span class="status-dot"></span>
+                    RECIBO GUARDADO
+                </span>
+                <h2 id="tituloResultado">Así de bien se ve<br>tu servicio.</h2>
+                <p>Tu comprobante está listo para compartir.</p>
+            </div>
+
+            <article id="recibo" class="receipt hidden" aria-label="Comprobante de servicio">
+                <header class="receipt-header">
+                    <div class="receipt-brand">
+                        <div class="receipt-logo-wrap">
+                            <img src="imagenes/favicon.png" class="recibo-logo" alt="Logo de Lavandería JC" width="64" height="64">
+                        </div>
+
+                        <div class="receipt-brand-copy">
+                            <span class="receipt-eyebrow">CUIDAMOS LO QUE VISTES</span>
+                            <h2>LAVANDERÍA <b>JC</b></h2>
+                            <p>Limpieza que se siente.</p>
+                        </div>
+                    </div>
+
+                    <div class="receipt-address">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                            <path d="M20 10c0 6-8 11-8 11S4 16 4 10a8 8 0 1 1 16 0Z"></path>
+                            <circle cx="12" cy="10" r="2.5"></circle>
+                        </svg>
+                        <p>Av. Ignacio Zaragoza 2157,<br>Puerto Escondido, Oaxaca.</p>
+                    </div>
+
+                    <div class="receipt-header-bottom">
+                        <span>COMPROBANTE DE SERVICIO</span>
+                        <span>MXN</span>
+                    </div>
+                </header>
+
+                <div class="receipt-body">
+                    <div class="receipt-meta">
+                        <div>
+                            <span class="receipt-label">FOLIO</span>
+                            <strong class="receipt-folio">#<span id="folioRecibo"></span></strong>
+                        </div>
+
+                        <div class="receipt-issued">
+                            <span class="receipt-label">FECHA DE EMISIÓN</span>
+                            <strong id="fechaRecibo"></strong>
+                        </div>
+                    </div>
+
+                    <section class="receipt-customer">
+                        <span class="receipt-label">PREPARADO PARA</span>
+                        <h3 id="clienteRecibo"></h3>
+                        <p>Gracias por dejarnos cuidar tu ropa.</p>
+                    </section>
+
+                    <section class="receipt-services">
+                        <div class="receipt-section-heading">
+                            <h3>Detalle de tu servicio</h3>
+                            <span>DESGLOSE</span>
+                        </div>
+
+                        <div id="detalleServicio" class="receipt-service-list"></div>
+                    </section>
+
+                    <div class="receipt-total">
+                        <div>
+                            <span>IMPORTE TOTAL</span>
+                            <small>Pesos mexicanos · MXN</small>
+                        </div>
+
+                        <strong>$<span id="totalRecibo"></span></strong>
+                    </div>
+
+                    <div class="receipt-payment">
+                        <div class="receipt-payment-item">
+                            <span class="receipt-label">ESTADO DEL PAGO</span>
+                            <strong id="estadoRecibo" class="payment-status"></strong>
+                        </div>
+
+                        <div class="receipt-payment-item">
+                            <span class="receipt-label">MÉTODO DE PAGO</span>
+                            <strong id="pagoRecibo"></strong>
+                        </div>
+                    </div>
+
+                    <section class="receipt-delivery">
+                        <span class="receipt-delivery-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                <rect x="3" y="5" width="18" height="16" rx="3"></rect>
+                                <path d="M7 3v4M17 3v4M3 11h18M8 15h3M8 18h6"></path>
+                            </svg>
+                        </span>
+
+                        <div>
+                            <span class="receipt-label">ENTREGA PROGRAMADA</span>
+                            <strong id="entregaRecibo"></strong>
+                        </div>
+                    </section>
+
+                    <div class="receipt-policy">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                            <path d="m12 3 8 4v5c0 5-8 9-8 9s-8-4-8-9V7z"></path>
+                            <path d="m8 12 3 3 5-6"></path>
+                        </svg>
+
+                        <p id="leyendaRecibo">
+                            <strong>Tu recibo es importante.</strong>
+                            Consérvalo y preséntalo al recoger tu ropa.
+                            Es necesario para realizar la entrega.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="receipt-perforation" aria-hidden="true">
+                    <span></span>
+                    <i></i>
+                    <span></span>
+                </div>
+
+                <footer class="receipt-footer">
+                    <div class="receipt-qr-section">
+                        <div class="receipt-qr-frame">
+                            <img
+                                id="qrRecibo"
+                                src="imagenes/QR.png"
+                                alt="Código QR de Lavandería JC"
+                                width="144"
+                                height="144"
+                            >
+                        </div>
+
+                        <div class="receipt-qr-copy">
+                            <span class="receipt-label">SIGAMOS CONECTADOS</span>
+                            <h3>Escanea nuestro QR</h3>
+                            <p>Usa la cámara de tu celular para abrir el enlace.</p>
+                            <span class="qr-caption">LAVANDERÍA JC</span>
+                        </div>
+                    </div>
+
+                    <div class="receipt-thanks">
+                        <span class="thanks-spark" aria-hidden="true">✦</span>
+                        <p class="gracias">Gracias por tu preferencia</p>
+                        <span>Será un gusto atenderte de nuevo.</span>
+                    </div>
+
+                    <a href="tel:9541833850" class="receipt-contact">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                            <path d="m5 3 4 4-2 3c2 4 3 5 7 7l3-2 4 4c-1 3-3 3-5 2C9 19 5 15 3 8 2 5 3 4 5 3Z"></path>
+                        </svg>
+                        <span>954 183 3850</span>
+                    </a>
+
+                    <div class="receipt-signature">
+                        <span>LAVANDERÍA JC</span>
+                        <span>PUERTO ESCONDIDO · OAXACA</span>
+                    </div>
+                </footer>
+            </article>
+
+            <div class="receipt-actions">
+                <button type="button" id="btnCompartir" class="share-button hidden" onclick="compartirRecibo()">
+                    <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path d="M12 15V3m-4 4 4-4 4 4M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"></path>
+                    </svg>
+                    <span>Compartir recibo</span>
+                </button>
+
+                <p class="share-hint">Se enviará como imagen, incluyendo el QR.</p>
+            </div>
+        </section>
+
+        <footer class="app-footer">
+            <img src="imagenes/favicon.png" alt="" width="24" height="24">
+            <span>Lavandería JC · Cuidamos cada detalle.</span>
+        </footer>
+    </main>
 </body>
 </html>

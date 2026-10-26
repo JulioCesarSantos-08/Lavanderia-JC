@@ -1,99 +1,524 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Datos de Recibos - Lavandería JC</title>
-  <link rel="icon" type="image/png" href="imagenes/favicon.png" />
-  <link rel="stylesheet" href="datos.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#102b46">
+    <meta name="color-scheme" content="light">
+    <title>Control del negocio | Lavandería JC</title>
+    <link rel="icon" type="image/png" href="imagenes/favicon.png">
+    <link rel="stylesheet" href="datos.css?v=4">
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js" defer></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" defer></script>
+    <script src="datos.js?v=4" defer></script>
 </head>
+
 <body>
-  <div class="contenedor-datos">
-    <h2>Recibos Guardados</h2>
+    <header class="app-header">
+        <a href="index.html" class="brand" aria-label="Ir al inicio">
+            <span class="brand-logo">
+                <img src="imagenes/favicon.png" alt="" width="42" height="42">
+            </span>
+            <span class="brand-copy">
+                <strong>LAVANDERÍA JC</strong>
+                <small>Control del negocio</small>
+            </span>
+        </a>
 
-    <div class="filtros">
-      <label>Desde: <input type="date" id="filtroDesde"></label>
-      <label>Hasta: <input type="date" id="filtroHasta"></label>
-      <button onclick="mostrarRecibos()">Aplicar Filtro</button>
-      <button style="background-color: red; color: white; margin-top: 10px;" onclick="eliminarFiltrados()">Eliminar Filtrados</button>
-    </div>    
+        <button type="button" class="icon-button" id="btnActualizar" aria-label="Actualizar datos">
+            <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <path d="M20 7v5h-5M4 17v-5h5"></path>
+                <path d="M6 7a7 7 0 0 1 12-1l2 3M4 15l2 3a7 7 0 0 0 12-1"></path>
+            </svg>
+        </button>
+    </header>
 
-    <div class="gasto-form">
-      <h3>Registrar Gasto</h3>
-      <input type="date" id="fechaGasto" required />
-      <input type="text" id="descripcionGasto" placeholder="Descripción" required />
-      <input type="number" id="montoGasto" placeholder="Monto ($)" required />
-      <select id="categoriaGasto" required>
-        <option value="" disabled selected>Selecciona categoría</option>
-        <option value="insumos">Insumos</option>
-        <option value="otros">Gastos</option>
-        <option value="otros">Otros</option>
-      </select>
-      <button onclick="registrarGasto()">Agregar Gasto</button>
-    </div>
+    <main class="dashboard">
+        <section class="dashboard-heading">
+            <div>
+                <span class="eyebrow">TODO BAJO CONTROL</span>
+                <h1>Tu negocio,<br>en un vistazo<span>.</span></h1>
+                <p>Recibos, gastos y resultados en un solo lugar.</p>
+            </div>
 
-    <div id="lista-recibos"></div>
-    <div id="total-ganancias">Total: $0</div>
-    <canvas id="graficaGanancias" width="400" height="200"></canvas>
+            <div class="connection-status" id="estadoConexion" role="status">
+                <span class="status-dot"></span>
+                <span id="textoConexion">Conectando…</span>
+            </div>
+        </section>
 
-    <button class="ver-datos" onclick="exportarAExcel()">Descargar Excel</button>
-    <button class="volver" onclick="window.location.href='recibos.html'">Volver a Recibos</button>
-    <button class="volver" onclick="window.location.href='analisis.html'">Analisis Avanzado</button>
-    <button class="volver" onclick="window.location.href='index.html'">Regresar a Inicio</button>
-    <button class="volver1" onclick="window.location.href='regisropa.html'">Registro de ropa</button>
-  </div>
+        <section class="balance-card" aria-labelledby="tituloBalance">
+            <div class="balance-top">
+                <span id="tituloBalance">BALANCE DEL PERIODO</span>
+                <span class="currency-tag">MXN</span>
+            </div>
 
-  <!-- 🔽 Botón flotante para ir hasta abajo -->
-  <button id="btnIrAbajo" onclick="irAbajo()">⬇️</button>
+            <strong id="total-ganancias" class="balance-amount">—</strong>
+            <p>Recibos pagados menos gastos registrados</p>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+            <div class="balance-bottom">
+                <span id="periodoResumen">Cargando periodo…</span>
+                <svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <path d="m3 17 6-6 4 4 8-10M15 5h6v6"></path>
+                </svg>
+            </div>
+        </section>
 
-  <!-- SheetJS para exportar a Excel -->
-  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+        <section class="metrics-grid" aria-label="Resumen del periodo">
+            <article class="metric-card metric-income">
+                <span class="metric-icon" aria-hidden="true">↙</span>
+                <span class="metric-label">Ingresos pagados</span>
+                <strong id="totalIngresos">—</strong>
+                <small id="cantidadPagados">Cargando…</small>
+            </article>
 
-  <script src="datos.js"></script>
+            <article class="metric-card metric-expense">
+                <span class="metric-icon" aria-hidden="true">↗</span>
+                <span class="metric-label">Gastos</span>
+                <strong id="totalGastos">—</strong>
+                <small id="cantidadGastos">Cargando…</small>
+            </article>
 
-  <div id="modalEditarRecibo" style="display: none;" class="modal">
-    <div class="modal-content">
-      <h3>Editar Recibo</h3>
-      <label>Nombre del Cliente:</label>
-      <input type="text" id="modalNuevoCliente"><br>
+            <article class="metric-card metric-pending">
+                <span class="metric-icon" aria-hidden="true">◷</span>
+                <span class="metric-label">Por cobrar</span>
+                <strong id="totalPendientes">—</strong>
+                <small id="cantidadPendientes">Cargando…</small>
+            </article>
 
-      <label>Fecha de Ingreso:</label>
-      <input type="date" id="modalNuevaFechaIngreso"><br>
+            <article class="metric-card metric-receipts">
+                <span class="metric-icon" aria-hidden="true">▤</span>
+                <span class="metric-label">Recibos</span>
+                <strong id="cantidadRecibos">—</strong>
+                <small>Dentro del periodo</small>
+            </article>
+        </section>
 
-      <label>Fecha de Entrega:</label>
-      <input type="date" id="modalNuevaFechaEntrega"><br>
+        <div class="quick-actions">
+            <a href="recibos.html" class="button button-primary">
+                <span aria-hidden="true">＋</span>
+                Nuevo recibo
+            </a>
 
-      <label>Total ($):</label>
-      <input type="number" id="modalNuevoTotal" step="0.01"><br>
+            <button type="button" id="btnNuevoGasto" class="button button-secondary">
+                <span aria-hidden="true">↗</span>
+                Registrar gasto
+            </button>
+        </div>
 
-      <button id="btnGuardarCambios">Guardar Cambios</button>
-      <button onclick="document.getElementById('modalEditarRecibo').style.display='none'">Cancelar</button>
-    </div>
-  </div>
+        <section class="panel filters-panel" aria-labelledby="tituloFiltros">
+            <div class="panel-heading">
+                <div>
+                    <span class="eyebrow">ELIGE QUÉ REVISAR</span>
+                    <h2 id="tituloFiltros">Tu periodo de trabajo</h2>
+                </div>
+                <span class="panel-symbol" aria-hidden="true">◷</span>
+            </div>
 
-  <!-- Script del botón -->
-  <script>
-    function irAbajo() {
-      window.scrollTo({
-        top: document.body.scrollHeight,
-        behavior: 'smooth'
-      });
-    }
+            <div class="period-options" role="group" aria-label="Periodos rápidos">
+                <button type="button" data-periodo="hoy" aria-pressed="false">Hoy</button>
+                <button type="button" data-periodo="semana" aria-pressed="false">7 días</button>
+                <button type="button" data-periodo="mes" aria-pressed="false">Este mes</button>
+                <button type="button" data-periodo="todos" aria-pressed="false">Todo</button>
+            </div>
 
-    // Mostrar el botón solo cuando haya que desplazarse
-    window.addEventListener('scroll', function() {
-      const btn = document.getElementById('btnIrAbajo');
-      if (window.scrollY < 200) {
-        btn.style.opacity = '1';
-      } else {
-        btn.style.opacity = '0.7';
-      }
-    });
-  </script>
+            <form id="formFiltros">
+                <div class="field-grid">
+                    <div class="field">
+                        <label for="filtroDesde">Desde</label>
+                        <input type="date" id="filtroDesde">
+                    </div>
+
+                    <div class="field">
+                        <label for="filtroHasta">Hasta</label>
+                        <input type="date" id="filtroHasta">
+                    </div>
+                </div>
+
+                <button type="submit" class="button button-filter">Aplicar periodo</button>
+            </form>
+
+            <p class="field-hint">
+                Recibos por fecha de entrega y gastos por fecha de registro del gasto.
+                Los indicadores y las gráficas corresponden a este periodo.
+            </p>
+        </section>
+
+        <p id="mensajePanel" class="panel-message" role="status" aria-live="polite"></p>
+
+        <section class="panel chart-panel" id="seccionGraficas" aria-labelledby="tituloGrafica">
+            <div class="panel-heading">
+                <div>
+                    <span class="eyebrow">ASÍ VA TU NEGOCIO</span>
+                    <h2 id="tituloGrafica">Ingresos y gastos</h2>
+                </div>
+            </div>
+
+            <div class="chart-switch" role="group" aria-label="Tipo de gráfica">
+                <button type="button" data-grafica="movimientos" aria-pressed="true">Comparación</button>
+                <button type="button" data-grafica="balance" aria-pressed="false">Balance</button>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="graficaGanancias" role="img" aria-label="Gráfica del periodo seleccionado"></canvas>
+            </div>
+
+            <p id="graficaVacia" class="empty-chart" hidden>No hay movimientos en este periodo.</p>
+            <p id="notaGrafica" class="field-hint">Toca una barra para consultar su importe.</p>
+
+            <details class="chart-data">
+                <summary>Ver cifras de la gráfica</summary>
+                <div class="table-scroll">
+                    <table>
+                        <caption>Resumen por fecha del periodo seleccionado</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col">Fecha</th>
+                                <th scope="col">Ingresos</th>
+                                <th scope="col">Gastos</th>
+                                <th scope="col">Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaGrafica"></tbody>
+                    </table>
+                </div>
+            </details>
+        </section>
+
+        <section class="panel payment-panel" aria-labelledby="tituloMetodos">
+            <div class="panel-heading">
+                <div>
+                    <span class="eyebrow">INGRESOS PAGADOS</span>
+                    <h2 id="tituloMetodos">¿Cómo te pagan?</h2>
+                </div>
+            </div>
+
+            <div class="payment-overview">
+                <div class="payment-chart-container">
+                    <canvas id="graficaTipoPago" role="img" aria-label="Distribución de ingresos pagados por método de pago"></canvas>
+                </div>
+
+                <div class="payment-breakdown">
+                    <div class="payment-summary">
+                        <span><i class="legend-dot cash"></i>Efectivo</span>
+                        <strong id="totalEfectivo">—</strong>
+                    </div>
+
+                    <div class="payment-summary">
+                        <span><i class="legend-dot transfer"></i>Transferencia</span>
+                        <strong id="totalTransferencia">—</strong>
+                    </div>
+
+                    <div class="payment-summary">
+                        <span><i class="legend-dot other"></i>Sin especificar</span>
+                        <strong id="totalOtroMetodo">—</strong>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="movements-section" id="seccionMovimientos" aria-labelledby="tituloMovimientos">
+            <div class="section-heading">
+                <div>
+                    <span class="eyebrow">HISTORIAL DEL NEGOCIO</span>
+                    <h2 id="tituloMovimientos">Tus movimientos</h2>
+                </div>
+                <span class="count-pill" id="cantidadMovimientos">0</span>
+            </div>
+
+            <div class="movement-toolbar">
+                <div class="search-field">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <circle cx="10.5" cy="10.5" r="6.5"></circle>
+                        <path d="m16 16 5 5"></path>
+                    </svg>
+                    <label for="buscarMovimiento" class="sr-only">Buscar por cliente, folio o descripción</label>
+                    <input type="search" id="buscarMovimiento" placeholder="Cliente, folio o descripción…" autocomplete="off">
+                </div>
+
+                <div class="movement-tabs" role="group" aria-label="Filtrar movimientos">
+                    <button type="button" data-vista="todos" aria-pressed="true">Todos</button>
+                    <button type="button" data-vista="recibos" aria-pressed="false">Recibos</button>
+                    <button type="button" data-vista="pendientes" aria-pressed="false">Pendientes</button>
+                    <button type="button" data-vista="gastos" aria-pressed="false">Gastos</button>
+                </div>
+
+                <div class="list-options">
+                    <p id="resumenLista">Cargando movimientos…</p>
+                    <div>
+                        <label for="ordenMovimientos" class="sr-only">Orden de los movimientos</label>
+                        <select id="ordenMovimientos">
+                            <option value="recientes">Más recientes</option>
+                            <option value="antiguos">Más antiguos</option>
+                            <option value="mayor">Mayor importe</option>
+                            <option value="menor">Menor importe</option>
+                        </select>
+                    </div>
+                </div>
+
+                <p class="field-hint">La búsqueda y las pestañas filtran esta lista.</p>
+            </div>
+
+            <div id="estadoCarga" class="loading-state" role="status">
+                <span class="loading-spinner" aria-hidden="true"></span>
+                <p>Cargando tus movimientos…</p>
+            </div>
+
+            <div id="lista-recibos" class="movement-list" aria-busy="true"></div>
+
+            <div id="estadoVacio" class="empty-state" hidden>
+                <span class="empty-icon" aria-hidden="true">▤</span>
+                <h3>No hay movimientos para mostrar</h3>
+                <p>Prueba otro periodo o cambia tu búsqueda.</p>
+                <button type="button" id="btnLimpiarBusqueda" class="button button-secondary">Limpiar búsqueda</button>
+            </div>
+
+            <button type="button" id="btnCargarMas" class="button button-load" hidden>Mostrar más movimientos</button>
+        </section>
+
+        <section class="panel tools-panel" aria-labelledby="tituloHerramientas">
+            <div class="panel-heading">
+                <div>
+                    <span class="eyebrow">A UN TOQUE</span>
+                    <h2 id="tituloHerramientas">Herramientas</h2>
+                </div>
+            </div>
+
+            <button type="button" id="btnExportar" class="tool-link">
+                <span class="tool-icon" aria-hidden="true">↓</span>
+                <span>
+                    <strong>Descargar Excel del periodo</strong>
+                    <small>Recibos y gastos en hojas separadas</small>
+                </span>
+                <span class="tool-arrow" aria-hidden="true">↗</span>
+            </button>
+
+            <a href="analisis.html" class="tool-link">
+                <span class="tool-icon" aria-hidden="true">▥</span>
+                <span>
+                    <strong>Análisis avanzado</strong>
+                    <small>Abrir el módulo de análisis</small>
+                </span>
+                <span class="tool-arrow" aria-hidden="true">↗</span>
+            </a>
+
+            <a href="regisropa.html" class="tool-link">
+                <span class="tool-icon" aria-hidden="true">▤</span>
+                <span>
+                    <strong>Registro de ropa</strong>
+                    <small>Consultar el registro de prendas</small>
+                </span>
+                <span class="tool-arrow" aria-hidden="true">↗</span>
+            </a>
+
+            <details class="danger-zone">
+                <summary>Administrar eliminación de registros</summary>
+                <p>Elimina recibos y gastos dentro de un rango de fechas. Se mostrará el alcance antes de confirmar.</p>
+                <button type="button" id="btnEliminarFiltrados" class="button button-danger-outline">Revisar registros para eliminar</button>
+            </details>
+        </section>
+
+        <footer class="app-footer">
+            <img src="imagenes/favicon.png" alt="" width="24" height="24">
+            <span>Lavandería JC · Cada detalle cuenta.</span>
+        </footer>
+    </main>
+
+    <nav class="bottom-nav" aria-label="Navegación principal">
+        <a href="index.html">
+            <span aria-hidden="true">⌂</span>
+            <small>Inicio</small>
+        </a>
+        <a href="recibos.html">
+            <span aria-hidden="true">＋</span>
+            <small>Crear recibo</small>
+        </a>
+        <a href="datos.html" aria-current="page">
+            <span aria-hidden="true">▥</span>
+            <small>Control</small>
+        </a>
+        <button type="button" id="btnGastoNav">
+            <span aria-hidden="true">↗</span>
+            <small>Nuevo gasto</small>
+        </button>
+    </nav>
+
+    <dialog id="modalDetalle" class="app-dialog" aria-labelledby="tituloDetalle">
+        <div class="dialog-shell">
+            <header class="dialog-header">
+                <div>
+                    <span class="eyebrow" id="tipoDetalle">MOVIMIENTO</span>
+                    <h2 id="tituloDetalle">Detalle</h2>
+                </div>
+                <button type="button" class="close-button" data-cerrar="modalDetalle" aria-label="Cerrar detalle">×</button>
+            </header>
+
+            <div class="dialog-body" id="contenidoDetalle"></div>
+            <footer class="dialog-footer" id="accionesDetalle"></footer>
+        </div>
+    </dialog>
+
+    <dialog id="modalEditarRecibo" class="app-dialog" aria-labelledby="tituloEditarRecibo">
+        <form id="formEditarRecibo" class="dialog-shell">
+            <header class="dialog-header">
+                <div>
+                    <span class="eyebrow">ACTUALIZAR REGISTRO</span>
+                    <h2 id="tituloEditarRecibo">Editar recibo</h2>
+                    <p id="folioEdicion" class="dialog-subtitle"></p>
+                </div>
+                <button type="button" class="close-button" data-cerrar="modalEditarRecibo" aria-label="Cerrar edición">×</button>
+            </header>
+
+            <div class="dialog-body">
+                <div class="field">
+                    <label for="modalNuevoCliente">Nombre del cliente</label>
+                    <input type="text" id="modalNuevoCliente" maxlength="120" autocomplete="name" required>
+                </div>
+
+                <div class="field-grid">
+                    <div class="field">
+                        <label for="modalNuevaFechaIngreso">Fecha de ingreso</label>
+                        <input type="date" id="modalNuevaFechaIngreso" required>
+                    </div>
+                    <div class="field">
+                        <label for="modalNuevaFechaEntrega">Fecha de entrega</label>
+                        <input type="date" id="modalNuevaFechaEntrega" required>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="modalNuevaHoraEntrega">Hora de entrega</label>
+                    <input type="time" id="modalNuevaHoraEntrega">
+                </div>
+
+                <div class="field">
+                    <label for="modalNuevoTotal">Importe total</label>
+                    <div class="money-field">
+                        <span>$</span>
+                        <input type="number" id="modalNuevoTotal" min="0" step="0.01" inputmode="decimal" required>
+                        <small>MXN</small>
+                    </div>
+                </div>
+
+                <p class="field-hint">Si ajustas el importe, se conservará el detalle de las prendas y se registrará el ajuste del total.</p>
+
+                <div class="field-grid">
+                    <div class="field">
+                        <label for="modalNuevoEstado">Estado del pago</label>
+                        <select id="modalNuevoEstado">
+                            <option value="pendiente">Pendiente</option>
+                            <option value="pagado">Pagado</option>
+                            <option value="pedido listo">Pedido listo · estado anterior</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="modalNuevoMetodo">Método de pago</label>
+                        <select id="modalNuevoMetodo">
+                            <option value="">Sin especificar</option>
+                            <option value="efectivo">Efectivo</option>
+                            <option value="transferencia">Transferencia</option>
+                        </select>
+                    </div>
+                </div>
+
+                <p id="errorEditarRecibo" class="form-error" role="alert"></p>
+            </div>
+
+            <footer class="dialog-footer">
+                <button type="button" class="button button-secondary" data-cerrar="modalEditarRecibo">Cancelar</button>
+                <button type="submit" id="btnGuardarCambios" class="button button-primary">Guardar cambios</button>
+            </footer>
+        </form>
+    </dialog>
+
+    <dialog id="modalGasto" class="app-dialog" aria-labelledby="tituloModalGasto">
+        <form id="formGasto" class="dialog-shell">
+            <header class="dialog-header">
+                <div>
+                    <span class="eyebrow">CONTROL DE GASTOS</span>
+                    <h2 id="tituloModalGasto">Registrar gasto</h2>
+                </div>
+                <button type="button" class="close-button" data-cerrar="modalGasto" aria-label="Cerrar gasto">×</button>
+            </header>
+
+            <div class="dialog-body">
+                <div class="expense-intro">
+                    <span aria-hidden="true">↗</span>
+                    <p>Registra cada salida para mantener claro el balance de tu negocio.</p>
+                </div>
+
+                <div class="field">
+                    <label for="descripcionGasto">¿En qué se gastó?</label>
+                    <input type="text" id="descripcionGasto" maxlength="200" placeholder="Ej. Compra de detergente" required>
+                </div>
+
+                <div class="field">
+                    <label for="montoGasto">Importe del gasto</label>
+                    <div class="money-field">
+                        <span>$</span>
+                        <input type="number" id="montoGasto" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00" required>
+                        <small>MXN</small>
+                    </div>
+                </div>
+
+                <div class="field-grid">
+                    <div class="field">
+                        <label for="fechaGasto">Fecha del gasto</label>
+                        <input type="date" id="fechaGasto" required>
+                    </div>
+                    <div class="field">
+                        <label for="categoriaGasto">Categoría</label>
+                        <select id="categoriaGasto" required>
+                            <option value="" disabled selected>Selecciona</option>
+                            <option value="insumos">Insumos</option>
+                            <option value="gastos">Gastos generales</option>
+                            <option value="otros">Otros</option>
+                        </select>
+                    </div>
+                </div>
+
+                <p id="errorGasto" class="form-error" role="alert"></p>
+            </div>
+
+            <footer class="dialog-footer">
+                <button type="button" class="button button-secondary" data-cerrar="modalGasto">Cancelar</button>
+                <button type="submit" id="btnGuardarGasto" class="button button-primary">Guardar gasto</button>
+            </footer>
+        </form>
+    </dialog>
+
+    <dialog id="modalConfirmar" class="app-dialog confirm-dialog" aria-labelledby="tituloConfirmar" aria-describedby="textoConfirmar">
+        <div class="dialog-shell">
+            <header class="dialog-header">
+                <div>
+                    <span class="eyebrow">CONFIRMAR ACCIÓN</span>
+                    <h2 id="tituloConfirmar">Revisar cambio</h2>
+                </div>
+                <button type="button" class="close-button" data-cerrar="modalConfirmar" aria-label="Cerrar confirmación">×</button>
+            </header>
+
+            <div class="dialog-body">
+                <div id="iconoConfirmar" class="confirm-icon" aria-hidden="true">!</div>
+                <p id="textoConfirmar" class="confirm-description"></p>
+                <div id="resumenConfirmar" class="confirm-summary"></div>
+
+                <div class="field" id="campoConfirmacion" hidden>
+                    <label for="textoConfirmacion">Escribe ELIMINAR para confirmar</label>
+                    <input type="text" id="textoConfirmacion" autocomplete="off" spellcheck="false" autocapitalize="characters">
+                </div>
+
+                <p id="errorConfirmar" class="form-error" role="alert"></p>
+            </div>
+
+            <footer class="dialog-footer">
+                <button type="button" class="button button-secondary" data-cerrar="modalConfirmar">Cancelar</button>
+                <button type="button" id="btnConfirmarAccion" class="button button-primary">Confirmar</button>
+            </footer>
+        </div>
+    </dialog>
+
+    <div id="notificacion" class="toast" role="status" aria-live="polite" hidden></div>
 </body>
 </html>
