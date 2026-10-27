@@ -842,12 +842,26 @@ async function actualizarRegistro(r, cambios) {
     const base = firma(r.data);
 
     const resultado = await estado.db.ref(r.ruta).transaction(actual => {
-        if (!actual || firma(actual) !== base) return;
-        return { ...actual, ...cambios };
+        if (actual === null) return null;
+
+        if (firma(actual) !== base) return;
+
+        return {
+            ...actual,
+            ...cambios
+        };
     }, undefined, false);
 
     if (!resultado.committed) {
-        throw new Error("Este registro cambió o fue eliminado. Cierra el modal, actualiza el panel y vuelve a abrirlo.");
+        throw new Error(
+            "El registro fue modificado mientras lo tenias abierto. Cierra esta ventana, actualiza el panel y vuelve a intentarlo."
+        );
+    }
+
+    if (!resultado.snapshot.exists()) {
+        throw new Error(
+            "Este registro ya no existe en la base de datos. Actualiza el panel."
+        );
     }
 
     return guardarLocal(r, resultado.snapshot.val());
