@@ -1035,7 +1035,8 @@ function solicitarEliminar(r) {
         eliminar: true,
         ejecutar: async () => {
             const resultado = await estado.db.ref(r.ruta).transaction(actual => {
-                if (!actual || firma(actual) !== firma(r.data)) return;
+                if (actual === null) return null;
+                if (firma(actual) !== firma(r.data)) return;
                 return null;
             }, undefined, false);
 
