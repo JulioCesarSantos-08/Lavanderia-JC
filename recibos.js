@@ -31,6 +31,7 @@ let reciboActual = null;
 let solicitudPendiente = null;
 let ultimoContenidoGuardado = "";
 let mayorFolioConocido = 0;
+let iniciandoNuevoJC = false;
 
 function dinero(valor) {
     return formatoMoneda.format(Number(valor) || 0);
@@ -56,10 +57,14 @@ function escapar(valor) {
 }
 
 function fechaLocal(fecha = new Date()) {
-    const anio = fecha.getFullYear();
-    const mes = String(fecha.getMonth() + 1).padStart(2, "0");
-    const dia = String(fecha.getDate()).padStart(2, "0");
-    return `${anio}-${mes}-${dia}`;
+    const partes = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'America/Mexico_City',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    }).formatToParts(fecha);
+    const valor = tipo => partes.find(p => p.type === tipo).value;
+    return valor('year') + '-' + valor('month') + '-' + valor('day');
 }
 
 function mostrarFecha(valor) {
@@ -253,59 +258,36 @@ function lineaServicio(titulo, descripcion, importe) {
 }
 
 function generarDetalleServicio(calculo, prendasNormales, total, lavadas) {
-    let html = "";
+    const fila = (titulo, detalle) => '<div class="service-line"><div><strong>' +
+        escapar(titulo) + '</strong><small>' + escapar(detalle) + '</small></div></div>';
+    let html = '';
 
     if (calculo.kilos > 0) {
-        html += lineaServicio(
-            `Servicio ${calculo.servicio}`,
-            `${calculo.kilos} kg × ${dinero(calculo.precioKilo)}`,
-            calculo.subtotalRopa
+        html += fila(
+            'Servicio ' + calculo.servicio,
+            new Intl.NumberFormat('es-MX', {
+                maximumFractionDigits: 3
+            }).format(calculo.kilos) + ' kg de ropa'
         );
     }
 
     if (prendasNormales.length) {
-        html += `
-            <div class="clothes-detail">
-                <strong>Prendas recibidas por kilo</strong>
-                ${prendasNormales.map(prenda =>
-                    `${escapar(prenda.nombre)}: ${prenda.cantidad}`
-                ).join(" · ")}
-            </div>
-        `;
+        html += fila(
+            'Prendas recibidas',
+            prendasNormales.map(p => p.nombre + ': ' + p.cantidad).join(' \u00b7 ')
+        );
     }
 
-    calculo.prendasEspeciales.forEach(prenda => {
-        html += lineaServicio(
-            prenda.nombre,
-            `${prenda.cantidad} × ${dinero(prenda.precio)}`,
-            redondear(prenda.cantidad * prenda.precio)
-        );
+    calculo.prendasEspeciales.forEach(p => {
+        html += fila(p.nombre, 'Cantidad: ' + p.cantidad);
     });
 
     if (calculo.tipoDomicilio) {
-        html += lineaServicio(
-            "Servicio a domicilio",
-            calculo.tipoDomicilio,
-            calculo.precioDomicilio
-        );
-    }
-
-    const ajuste = redondear(total - calculo.subtotal);
-
-    if (ajuste !== 0) {
-        html += lineaServicio(
-            ajuste < 0 ? "Descuento aplicado" : "Ajuste de importe",
-            "Ajuste manual del total",
-            ajuste
-        );
+        html += fila('Servicio a domicilio', calculo.tipoDomicilio);
     }
 
     if (lavadas > 0) {
-        html += `
-            <div class="clothes-detail">
-                <strong>Lavadas acumuladas: ${lavadas}</strong>
-            </div>
-        `;
+        html += fila('Lavadas acumuladas', String(lavadas));
     }
 
     return html;
@@ -385,6 +367,7 @@ function obtenerDatos() {
 }
 
 function mostrarRecibo(data) {
+    aplicarTemporadaJC(data.fechaEmision);
     $("fechaRecibo").textContent = mostrarFecha(data.fechaEmision);
     $("folioRecibo").textContent = data.folio;
     $("clienteRecibo").textContent = data.cliente;
@@ -418,7 +401,7 @@ function mostrarRecibo(data) {
 }
 
 async function generarRecibo() {
-    if (guardando || compartiendo || preparandoImagen) return;
+    if (guardando || compartiendo || preparandoImagen || iniciandoNuevoJC) return;
 
     if (!database) {
         avisar("No se pudo conectar con Firebase. Recarga la página.", true);
@@ -540,6 +523,10 @@ async function crearArchivoRecibo() {
 
     const canvas = await html2canvas(recibo, {
         scale: 3,
+        width: 440,
+        windowWidth: 480,
+        scrollX: 0,
+        scrollY: 0,
         backgroundColor: "#ffffff",
         useCORS: true,
         logging: false,
@@ -547,6 +534,8 @@ async function crearArchivoRecibo() {
             const copia = documento.getElementById("recibo");
             copia.style.boxShadow = "none";
             copia.style.margin = "0";
+            copia.style.width = "440px";
+            copia.style.maxWidth = "none";
         }
     });
 
@@ -650,6 +639,13 @@ async function compartirRecibo() {
 }
 
 function iniciar() {
+    let accesoRecordado = false;
+
+    try {
+        accesoRecordado = sessionStorage.getItem('jc-acceso-recibos') === 'activo';
+    } catch {}
+
+    if (!accesoRecordado) {
     const clave = window.prompt(
         "Apartado solo para administradores. Ingresa la contraseña:"
     );
@@ -660,7 +656,39 @@ function iniciar() {
         return;
     }
 
+
+        try {
+            sessionStorage.setItem('jc-acceso-recibos', 'activo');
+        } catch {}
+    }
+
+    $('btnNuevoRecibo').addEventListener('click', nuevoReciboJC);
+
+    $('btnCerrarSesionJC').addEventListener('click', () => {
+        if (guardando || compartiendo || preparandoImagen || iniciandoNuevoJC) return;
+        if (!confirm('Cerrar sesion? Se perdera la captura que no hayas guardado.')) return;
+
+        try {
+            sessionStorage.removeItem('jc-acceso-recibos');
+        } catch {}
+
+        window.location.replace('index.html');
+    });
+
     document.body.style.display = "flex";
+    document.body.dataset.recibosVersion = "jc6-1794800768491";
+
+    let versionJC = document.getElementById('versionRecibosJC');
+
+    if (!versionJC) {
+        versionJC = document.createElement('p');
+        versionJC.id = 'versionRecibosJC';
+        versionJC.style.cssText = 'margin:12px;padding:12px;background:#073e49;color:white;text-align:center;border-radius:10px;font:700 13px Arial';
+        document.body.prepend(versionJC);
+    }
+
+    versionJC.textContent = 'Recibos V6 | ' + fechaLocal() + ' | ' + temporadaJC(fechaLocal()).titulo;
+
 
     const hoy = fechaLocal();
     $("fechaIngreso").value = hoy;
@@ -692,4 +720,342 @@ if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", iniciar, { once: true });
 } else {
     iniciar();
+}
+function temporadaJC(fecha) {
+    const [anio, mes, dia] = fecha.split('-').map(Number);
+    const md = mes * 100 + dia;
+
+    if (md >= 1110 && md <= 1120 && anio > 2024) {
+        return {
+            tema: 'aniversario',
+            titulo: (anio - 2024) + ' A\u00d1OS CONTIGO',
+            mensaje: 'Gracias por ser parte de nuestra historia.'
+        };
+    }
+
+    if (md >= 1205 && md <= 1228) {
+        return {
+            tema: 'navidad',
+            titulo: 'FELIZ NAVIDAD',
+            mensaje: 'Que la alegria llegue a cada rincon de tu hogar.'
+        };
+    }
+
+    if (md >= 1229 || md <= 105) {
+        return {
+            tema: 'nuevo',
+            titulo: '\u00a1FELIZ ' + (mes === 12 ? anio + 1 : anio) + '!',
+            mensaje: 'Un nuevo a\u00f1o para seguir cuidando de ti.'
+        };
+    }
+
+    if (md >= 508 && md <= 512) {
+        return {
+            tema: 'madres',
+            titulo: 'CON CARI\u00d1O PARA MAM\u00c1',
+            mensaje: 'Celebramos el amor que cuida cada detalle.'
+        };
+    }
+
+    return {
+        tema: 'habitual',
+        titulo: 'CUIDAMOS LO QUE VISTES',
+        mensaje: 'Limpieza que se siente.'
+    };
+}
+
+function aplicarTemporadaJC(fecha) {
+    const temporada = temporadaJC(fecha);
+    const tema = temporada.tema;
+    const anio = Number(fecha.slice(0, 4));
+    const mes = Number(fecha.slice(5, 7));
+    const recibo = $('recibo');
+
+    recibo.dataset.temporada = tema;
+
+    let banda = $('temporadaReciboJC');
+
+    if (!banda) {
+        banda = document.createElement('div');
+        banda.id = 'temporadaReciboJC';
+        recibo.querySelector('.receipt-header').appendChild(banda);
+    }
+
+    banda.replaceChildren();
+
+    const mensajes = {
+        aniversario: [
+            'EDICI\u00d3N DE ANIVERSARIO',
+            String(anio - 2024),
+            'A\u00d1OS CONTIGO',
+            'Tu confianza es nuestro mejor regalo.',
+            'Gracias por celebrar con nosotros'
+        ],
+        navidad: [
+            'UN DETALLE LLENO DE CARI\u00d1O',
+            'NAVIDAD',
+            'QUE SE SIENTE EN CASA',
+            'Te deseamos paz, amor y momentos felices.',
+            'Felices fiestas, de nuestra familia a la tuya'
+        ],
+        nuevo: [
+            'BRINDEMOS POR LO QUE VIENE',
+            String(mes === 12 ? anio + 1 : anio),
+            '\u00a1FELIZ A\u00d1O NUEVO!',
+            'Gracias por acompa\u00f1arnos un a\u00f1o m\u00e1s.',
+            'Un nuevo comienzo, la misma dedicaci\u00f3n'
+        ],
+        madres: [
+            'HOY CELEBRAMOS TU AMOR',
+            'MAM\u00c1',
+            'GRACIAS POR TANTO',
+            'Para quien cuida de todos, todo nuestro cari\u00f1o.',
+            'Con mucho cari\u00f1o, Lavander\u00eda JC'
+        ]
+    };
+
+    const gracias = recibo.querySelector('.gracias');
+
+    if (gracias) {
+        gracias.textContent = tema === 'habitual'
+            ? 'Gracias por tu preferencia'
+            : mensajes[tema][4];
+    }
+
+    if (tema === 'habitual') {
+        banda.className = '';
+
+        const titulo = document.createElement('strong');
+        titulo.textContent = temporada.titulo;
+
+        const mensaje = document.createElement('span');
+        mensaje.textContent = temporada.mensaje;
+
+        banda.append(titulo, mensaje);
+        return;
+    }
+
+    banda.className = 'fiesta-jc';
+
+    const estrella = (x, y, color, escala = 1) =>
+        '<path transform="translate(' + x + ' ' + y + ') scale(' + escala +
+        ')" d="M0 -8 2 -2 8 0 2 2 0 8 -2 2 -8 0 -2 -2Z" fill="' + color + '"/>';
+
+    const globo = (x, y, color, giro) =>
+        '<g transform="translate(' + x + ' ' + y + ') rotate(' + giro + ')">' +
+        '<path d="M0 29C-18 57 20 69 0 99" fill="none" stroke="#e5c47a" stroke-width="1.5"/>' +
+        '<ellipse rx="22" ry="29" fill="' + color + '"/>' +
+        '<path d="M-10 -17Q-18 -8 -16 1" fill="none" stroke="#fff" stroke-opacity=".65" stroke-width="3" stroke-linecap="round"/>' +
+        '<path d="M0 27-4 34H4Z" fill="' + color + '"/></g>';
+
+    const flor = (x, y, escala, color) => {
+        let petalos = '';
+
+        for (let i = 0; i < 6; i++) {
+            petalos += '<ellipse cy="-12" rx="8" ry="13" fill="' + color +
+                '" transform="rotate(' + i * 60 + ')"/>';
+        }
+
+        return '<g transform="translate(' + x + ' ' + y + ') scale(' + escala + ')">' +
+            petalos + '<circle r="6" fill="#efbd58"/></g>';
+    };
+
+    const fuego = (x, y, color, radio) => {
+        let lineas = '';
+
+        for (let i = 0; i < 12; i++) {
+            const a = i * Math.PI / 6;
+
+            lineas += '<path d="M' +
+                (x + Math.cos(a) * 12) + ' ' +
+                (y + Math.sin(a) * 12) + 'L' +
+                (x + Math.cos(a) * radio) + ' ' +
+                (y + Math.sin(a) * radio) +
+                '" stroke="' + color + '" stroke-width="2" stroke-linecap="round"/>';
+
+            lineas += '<circle cx="' +
+                (x + Math.cos(a) * (radio + 7)) +
+                '" cy="' + (y + Math.sin(a) * (radio + 7)) +
+                '" r="1.8" fill="' + color + '"/>';
+        }
+
+        return lineas;
+    };
+
+    let dibujo = '';
+
+    if (tema === 'aniversario') {
+        dibujo =
+            globo(24, 71, '#d7a640', -15) +
+            globo(63, 35, '#40b9d2', 13) +
+            globo(418, 72, '#40b9d2', 14) +
+            globo(379, 36, '#efca70', -13);
+
+        [[18,178],[85,123],[357,133],[421,186],[108,28],[331,28]]
+            .forEach(([x,y]) => {
+                dibujo += estrella(x,y,'#efca70',.65);
+            });
+
+        [[13,20],[78,174],[355,190],[431,28],[104,77],[338,81]]
+            .forEach(([x,y],i) => {
+                dibujo += '<rect x="' + x + '" y="' + y +
+                    '" width="4" height="10" rx="1" fill="' +
+                    (i % 2 ? '#61d4de' : '#edc15e') +
+                    '" transform="rotate(25 ' + x + ' ' + y + ')"/>';
+            });
+    }
+
+    if (tema === 'navidad') {
+        dibujo = '<g stroke="#69a976" stroke-width="3">' +
+            '<path d="M0 0 87 51M440 0 353 51"/>';
+
+        for (let i = 0; i < 6; i++) {
+            const x = i * 12;
+
+            dibujo += '<path d="M' + x + ' ' + (i * 7) +
+                'l2 22m0 -22 23 -5M' + (440 - x) + ' ' + (i * 7) +
+                'l-2 22m0 -22 -23 -5"/>';
+        }
+
+        dibujo += '</g>' +
+            '<g stroke="#e6c574" stroke-width="1.5">' +
+            '<path d="M38 0v56M77 0v30M402 0v56M363 0v30"/></g>' +
+            '<g fill="#df4c4c" stroke="#ffb6a1" stroke-width="2">' +
+            '<circle cx="38" cy="69" r="15"/>' +
+            '<circle cx="402" cy="69" r="15"/></g>' +
+            '<g fill="#f1cf7b">' +
+            '<circle cx="77" cy="40" r="10"/>' +
+            '<circle cx="363" cy="40" r="10"/></g>';
+
+        [24,416].forEach(x => {
+            dibujo += '<path d="M' + x +
+                ' 140l-20 28h12l-18 25h52l-18 -25h12Z" fill="#70ab7c"/>' +
+                '<rect x="' + (x - 3) +
+                '" y="193" width="6" height="10" fill="#d9b46b"/>';
+
+            dibujo += estrella(x,136,'#f6d58c',.65);
+        });
+
+        [[18,111],[81,143],[360,146],[421,110]].forEach(([x,y]) => {
+            dibujo += estrella(x,y,'#ffffff',.5);
+        });
+    }
+
+    if (tema === 'nuevo') {
+        dibujo =
+            fuego(39,61,'#efca70',30) +
+            fuego(402,56,'#c3b4ff',30) +
+            fuego(25,184,'#b2a2ee',22) +
+            fuego(418,183,'#efca70',23);
+
+        [[93,30],[347,27],[84,135],[359,134],[118,200],[321,204]]
+            .forEach(([x,y]) => {
+                dibujo += estrella(x,y,'#efca70',.6);
+            });
+    }
+
+    if (tema === 'madres') {
+        dibujo = '<g fill="none" stroke="#52795c" stroke-width="3">' +
+            '<path d="M0 210Q70 175 27 24M440 210Q370 175 413 24"/></g>' +
+            '<g fill="#6b9974">' +
+            '<ellipse cx="22" cy="119" rx="10" ry="23" transform="rotate(-35 22 119)"/>' +
+            '<ellipse cx="48" cy="151" rx="9" ry="22" transform="rotate(35 48 151)"/>' +
+            '<ellipse cx="418" cy="119" rx="10" ry="23" transform="rotate(35 418 119)"/>' +
+            '<ellipse cx="392" cy="151" rx="9" ry="22" transform="rotate(-35 392 151)"/></g>';
+
+        dibujo +=
+            flor(20,48,1.2,'#da7594') +
+            flor(54,88,.8,'#f3b5c5') +
+            flor(17,180,.85,'#e896ad') +
+            flor(420,48,1.2,'#da7594') +
+            flor(386,88,.8,'#f3b5c5') +
+            flor(423,180,.85,'#e896ad');
+    }
+
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="440" height="230" viewBox="0 0 440 230">' +
+        dibujo + '</svg>';
+
+    const imagen = document.createElement('img');
+    imagen.className = 'fiesta-jc-arte';
+    imagen.alt = '';
+    imagen.setAttribute('aria-hidden', 'true');
+    imagen.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+
+    const contenido = document.createElement('div');
+    contenido.className = 'fiesta-jc-contenido';
+
+    const clases = [
+        'fiesta-jc-etiqueta',
+        'fiesta-jc-grande',
+        'fiesta-jc-titulo',
+        'fiesta-jc-mensaje'
+    ];
+
+    mensajes[tema].slice(0,4).forEach((texto,i) => {
+        const elemento = document.createElement(i === 1 ? 'strong' : 'span');
+        elemento.className = clases[i];
+        elemento.textContent = texto;
+        contenido.appendChild(elemento);
+    });
+
+    banda.append(imagen, contenido);
+}
+
+async function nuevoReciboJC() {
+    if (guardando || compartiendo || preparandoImagen || iniciandoNuevoJC) {
+        avisar('Espera a que termine el guardado o la preparacion de la imagen.');
+        return;
+    }
+
+    if (solicitudPendiente) {
+        avisar(
+            'Hay un guardado sin confirmar. Reintenta Generar recibo con los mismos datos antes de iniciar otro.',
+            true
+        );
+        return;
+    }
+
+    const sinGuardar = !reciboActual ||
+        JSON.stringify(obtenerDatos()) !== ultimoContenidoGuardado;
+
+    if (sinGuardar && !confirm(
+        'Limpiar la captura para iniciar un nuevo recibo? Los cambios sin guardar se perderan.'
+    )) return;
+
+    iniciandoNuevoJC = true;
+    $('btnNuevoRecibo').disabled = true;
+
+    try {
+        $('formRecibo').reset();
+        $('fechaIngreso').value = fechaLocal();
+        $('fechaEntrega').min = $('fechaIngreso').value;
+
+        totalModificadoManualmente = false;
+        archivoRecibo = null;
+        reciboActual = null;
+        ultimoContenidoGuardado = '';
+
+        $('resultado').classList.add('hidden');
+        $('recibo').classList.add('hidden');
+        $('btnCompartir').classList.add('hidden');
+
+        sincronizarDomicilio();
+        calcularTotal();
+
+        $('folio').value = mayorFolioConocido + 1;
+        avisar('Nueva captura lista. Consultando el siguiente folio...');
+
+        if (database) await mostrarUltimoFolio();
+
+        avisar('Nueva captura lista. Revisa el folio indicado y agrega al siguiente cliente.');
+        $('cliente').focus();
+
+        $('formRecibo').scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+        });
+    } finally {
+        iniciandoNuevoJC = false;
+        $('btnNuevoRecibo').disabled = false;
+    }
 }

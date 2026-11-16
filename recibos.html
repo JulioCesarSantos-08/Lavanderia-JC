@@ -7,11 +7,11 @@
     <meta name="color-scheme" content="light">
     <title>Recibos | Lavandería JC</title>
     <link rel="icon" type="image/png" href="imagenes/favicon.png">
-    <link rel="stylesheet" href="recibos.css?v=3">
+    <link rel="stylesheet" href="recibos.css?v=fiestas-1794801421634">
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js" defer></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
-    <script src="recibos.js?v=3" defer></script>
+    <script src="recibos.js?v=fiestas-1794801421634" defer></script>
 </head>
 
 <body>
@@ -117,7 +117,7 @@
                     <div class="field">
                         <label for="kilos">Peso de la ropa</label>
                         <div class="input-unit">
-                            <input type="number" id="kilos" min="0" step="0.1" value="0" inputmode="decimal" required>
+                            <input type="number" id="kilos" min="0" step="0.001" value="0" inputmode="decimal" required>
                             <span>kg</span>
                         </div>
                     </div>
@@ -373,7 +373,7 @@
                 <header class="receipt-header">
                     <div class="receipt-brand">
                         <div class="receipt-logo-wrap">
-                            <img src="imagenes/favicon.png" class="recibo-logo" alt="Logo de Lavandería JC" width="64" height="64">
+                            <img src="imagenes/logo-recibo.png" class="recibo-logo" alt="Logo de Lavandería JC" width="64" height="64">
                         </div>
 
                         <div class="receipt-brand-copy">
@@ -419,7 +419,7 @@
                     <section class="receipt-services">
                         <div class="receipt-section-heading">
                             <h3>Detalle de tu servicio</h3>
-                            <span>DESGLOSE</span>
+                            <span>ROPA RECIBIDA</span>
                         </div>
 
                         <div id="detalleServicio" class="receipt-service-list"></div>
@@ -521,6 +521,7 @@
             </article>
 
             <div class="receipt-actions">
+                <button type="button" id="btnNuevoRecibo" class="primary-button">&#43; Nuevo recibo</button>
                 <button type="button" id="btnCompartir" class="share-button hidden" onclick="compartirRecibo()">
                     <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                         <path d="M12 15V3m-4 4 4-4 4 4M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"></path>
@@ -532,6 +533,7 @@
             </div>
         </section>
 
+        <button type="button" id="btnCerrarSesionJC" class="secondary-button">Cerrar sesion</button>
         <footer class="app-footer">
             <img src="imagenes/favicon.png" alt="" width="24" height="24">
             <span>Lavandería JC · Cuidamos cada detalle.</span>

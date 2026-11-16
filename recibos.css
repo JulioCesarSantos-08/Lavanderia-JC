@@ -1641,3 +1641,377 @@ details[open] .summary-chevron {
         break-inside: avoid;
     }
 }
+#recibo{
+    --jc-tinta:#072f49;
+    --jc-acento:#006d78;
+    --jc-fondo:#e3f4f4;
+    border:2px solid var(--jc-tinta);
+    border-radius:18px;
+    font-family:Arial,sans-serif;
+    color:#102c3b;
+}
+#recibo[data-temporada="aniversario"]{
+    --jc-tinta:#082c50;
+    --jc-acento:#875300;
+    --jc-fondo:#fff2cf;
+}
+#recibo[data-temporada="navidad"]{
+    --jc-tinta:#114331;
+    --jc-acento:#a32932;
+    --jc-fondo:#fff0e7;
+}
+#recibo[data-temporada="nuevo"]{
+    --jc-tinta:#222047;
+    --jc-acento:#705000;
+    --jc-fondo:#fff2cf;
+}
+#recibo[data-temporada="madres"]{
+    --jc-tinta:#702344;
+    --jc-acento:#9a2454;
+    --jc-fondo:#ffe9f0;
+}
+#recibo .receipt-header{padding:18px 16px 0;background:var(--jc-tinta)}
+#recibo .receipt-brand{gap:12px}
+#recibo .receipt-logo-wrap{width:116px;height:116px;border-radius:14px;overflow:hidden;border:2px solid white}
+#recibo .recibo-logo{width:112px;height:112px;object-fit:contain}
+#recibo .receipt-brand-copy h2{font-size:23px;line-height:1.15;letter-spacing:-.7px}
+#recibo .receipt-brand-copy h2 b{color:white}
+#recibo .receipt-eyebrow{font-size:10px;color:white;letter-spacing:.5px}
+#recibo .receipt-brand-copy p{font-size:13px;color:white}
+#recibo .receipt-address{margin:12px 0;color:white}
+#recibo .receipt-address p{font-size:13px;line-height:1.45}
+#recibo .receipt-address svg{color:white}
+#recibo .receipt-header-bottom{padding:8px 0;color:white;font-size:10px;letter-spacing:.5px}
+
+#temporadaReciboJC{
+    margin:0 -16px;
+    padding:12px 16px;
+    background:var(--jc-fondo);
+    border-bottom:3px solid var(--jc-acento);
+    text-align:center;
+    color:var(--jc-tinta);
+}
+#temporadaReciboJC strong{display:block;font-size:24px;font-weight:900;letter-spacing:.4px}
+#temporadaReciboJC span{display:block;margin-top:4px;font-size:13px;line-height:1.4;font-weight:700}
+#recibo[data-temporada="aniversario"] #temporadaReciboJC strong:before,
+#recibo[data-temporada="nuevo"] #temporadaReciboJC strong:before{content:'? ';color:var(--jc-acento)}
+#recibo[data-temporada="navidad"] #temporadaReciboJC strong:before{content:'? ';color:var(--jc-acento)}
+#recibo[data-temporada="madres"] #temporadaReciboJC strong:before{content:'? ';color:var(--jc-acento)}
+
+#recibo .receipt-body{padding:16px}
+#recibo .receipt-label{font-size:11px;letter-spacing:.4px;color:#354b58;font-weight:800}
+#recibo .receipt-folio{font-size:32px;color:var(--jc-tinta)}
+#recibo .receipt-issued strong{font-size:15px;color:#102c3b;margin-top:5px}
+#recibo .receipt-customer{margin-top:12px;padding:12px;border:1px solid #becfd4;background:var(--jc-fondo)}
+#recibo .receipt-customer h3{font-size:23px;color:#102c3b;margin-top:3px}
+#recibo .receipt-customer p{display:none}
+#recibo .receipt-services{margin-top:16px}
+#recibo .receipt-section-heading{padding-bottom:8px;border-color:var(--jc-tinta)}
+#recibo .receipt-section-heading h3{font-size:17px}
+#recibo .receipt-section-heading>span{display:none}
+#recibo .receipt-service-list{padding:8px 0 0;line-height:1.5}
+#recibo .service-line{display:block;padding:9px 0;border-color:#c8d5da}
+#recibo .service-line strong{font-size:17px;color:#102c3b}
+#recibo .service-line small{font-size:16px;color:#243f4f;font-weight:600;margin-top:3px}
+
+#recibo .receipt-total{
+    margin-top:12px;
+    padding:15px 12px;
+    gap:6px;
+    background:var(--jc-tinta);
+    border:0;
+    border-radius:12px;
+    color:white;
+}
+#recibo .receipt-total>div>span{font-size:12px;color:white;letter-spacing:.4px}
+#recibo .receipt-total small{font-size:11px;color:white}
+#recibo .receipt-total>strong{font-size:36px;color:white;letter-spacing:-1px}
+#recibo .receipt-payment{margin-top:14px;gap:8px}
+#recibo .receipt-payment-item>strong{font-size:16px;color:#102c3b}
+#recibo .receipt-payment-item>.payment-status{font-size:15px;padding:5px 10px;color:#763a00;background:#ffe1a6}
+#recibo .receipt-payment-item>.payment-status.pagado{color:#074d32;background:#b5ebcd}
+#recibo .receipt-delivery{margin-top:14px;padding:12px;background:var(--jc-fondo);border-color:#bdccd2;gap:10px}
+#recibo .receipt-delivery strong{font-size:17px;color:#102c3b;line-height:1.4}
+#recibo .receipt-delivery-icon{width:32px;height:36px;color:var(--jc-tinta)}
+#recibo .receipt-policy{margin-top:12px;color:#354b58}
+#recibo .receipt-policy p,
+#recibo .receipt-policy strong{font-size:12px;color:#354b58;line-height:1.5}
+
+#recibo .receipt-footer{padding:10px 16px 0}
+#recibo .receipt-qr-section{grid-template-columns:134px minmax(0,1fr);gap:12px}
+#recibo .receipt-qr-frame{width:134px;height:134px;padding:8px;border:1px solid #acbcc4;border-radius:8px;background:white}
+#recibo .receipt-qr-frame img{width:116px;height:116px}
+#recibo .receipt-qr-copy h3{font-size:18px;color:var(--jc-tinta);line-height:1.25}
+#recibo .receipt-qr-copy p{font-size:12px;color:#354b58;line-height:1.4}
+#recibo .receipt-qr-copy .receipt-label{font-size:10px;color:#354b58}
+#recibo .qr-caption{display:none}
+#recibo .receipt-thanks{margin-top:12px;padding-top:12px}
+#recibo .thanks-spark{display:none}
+#recibo .receipt-thanks .gracias{font-size:18px;color:var(--jc-tinta);margin-top:0}
+#recibo .receipt-thanks>span{font-size:12px;color:#354b58}
+#recibo .receipt-contact{font-size:18px;color:var(--jc-tinta);margin:12px 0}
+#recibo .receipt-signature{font-size:9px;color:#354b58;padding:10px 0;gap:8px;margin-top:0}
+
+#btnNuevoRecibo{
+    width:100%;
+    min-height:52px;
+    margin-bottom:12px;
+    background:#073e49;
+    color:white;
+}
+#btnCerrarSesionJC{
+    display:block;
+    margin:24px auto;
+    padding:12px 20px;
+    border:1px solid #31566a;
+    border-radius:12px;
+    background:white;
+    color:#163e51;
+    font-size:14px;
+    font-weight:700;
+}
+@media(max-width:360px){
+    #recibo .receipt-brand{flex-direction:column;text-align:center}
+    #recibo .receipt-brand-copy h2{font-size:23px}
+    #recibo .receipt-qr-section{grid-template-columns:120px minmax(0,1fr);gap:8px}
+    #recibo .receipt-qr-frame{width:120px;height:120px}
+    #recibo .receipt-qr-frame img{width:102px;height:102px}
+}
+
+#recibo[data-temporada="aniversario"] #temporadaReciboJC strong:before,
+#recibo[data-temporada="nuevo"] #temporadaReciboJC strong:before{
+    content:'\2736 ';
+}
+#recibo[data-temporada="navidad"] #temporadaReciboJC strong:before{
+    content:'\2736 ';
+}
+#recibo[data-temporada="madres"] #temporadaReciboJC strong:before{
+    content:'\2665 ';
+}
+
+#recibo[data-temporada="aniversario"]{
+    --jc-tinta:#092d52;
+    --jc-acento:#946219;
+    --jc-fondo:#fff4d7;
+    border-color:#c59a4d;
+}
+#recibo[data-temporada="navidad"]{
+    --jc-tinta:#12422f;
+    --jc-acento:#a82035;
+    --jc-fondo:#fff2e9;
+    border-color:#1a583b;
+}
+#recibo[data-temporada="nuevo"]{
+    --jc-tinta:#201e43;
+    --jc-acento:#8a6424;
+    --jc-fondo:#fff4dc;
+    border-color:#b49357;
+}
+#recibo[data-temporada="madres"]{
+    --jc-tinta:#702943;
+    --jc-acento:#9c365d;
+    --jc-fondo:#fff0f3;
+    border-color:#b76382;
+}
+
+#recibo #temporadaReciboJC.fiesta-jc{
+    position:relative;
+    isolation:isolate;
+    overflow:hidden;
+    box-sizing:border-box;
+    margin:0 -16px;
+    padding:0;
+    min-height:230px;
+    border-top:1px solid #ffffff42;
+    border-bottom:4px solid #d5ad60;
+    background:#092d52;
+    color:#fff3d6;
+}
+#recibo #temporadaReciboJC.fiesta-jc:before,
+#recibo #temporadaReciboJC.fiesta-jc strong:before{
+    content:none;
+}
+#recibo .fiesta-jc .fiesta-jc-arte{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    max-width:none;
+    object-fit:fill;
+    pointer-events:none;
+    z-index:0;
+}
+#recibo .fiesta-jc .fiesta-jc-contenido{
+    position:relative;
+    z-index:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    min-height:230px;
+    padding:20px 58px;
+    text-align:center;
+    box-sizing:border-box;
+}
+#recibo .fiesta-jc .fiesta-jc-etiqueta{
+    display:block;
+    font-size:10px;
+    font-weight:800;
+    letter-spacing:1.5px;
+    line-height:1.5;
+    color:inherit;
+    margin:0;
+}
+#recibo .fiesta-jc .fiesta-jc-grande{
+    display:block;
+    font-family:Georgia,serif;
+    font-size:82px;
+    font-weight:700;
+    line-height:1.03;
+    letter-spacing:-3px;
+    color:#f7d583;
+    margin:5px 0 0;
+    text-shadow:0 3px 0 #00000024;
+}
+#recibo .fiesta-jc .fiesta-jc-titulo{
+    display:block;
+    font-size:17px;
+    font-weight:900;
+    line-height:1.25;
+    letter-spacing:1.5px;
+    color:inherit;
+    margin:5px 0 0;
+}
+#recibo .fiesta-jc .fiesta-jc-mensaje{
+    display:block;
+    font-size:12px;
+    font-weight:600;
+    line-height:1.5;
+    color:inherit;
+    letter-spacing:0;
+    margin:12px 0 0;
+    max-width:260px;
+}
+
+#recibo[data-temporada="aniversario"] .receipt-header{
+    background:linear-gradient(120deg,#071d35,#123f67);
+}
+#recibo[data-temporada="aniversario"] .receipt-total{
+    background:linear-gradient(110deg,#082c50,#164b70);
+    border-left:5px solid #d5ad60;
+}
+
+#recibo[data-temporada="navidad"] .receipt-header{
+    background:linear-gradient(120deg,#0a3022,#1c5c3e);
+}
+#recibo[data-temporada="navidad"] #temporadaReciboJC.fiesta-jc{
+    background:#103d2b;
+    border-bottom-color:#ce4854;
+    color:#fff4db;
+}
+#recibo[data-temporada="navidad"] .fiesta-jc .fiesta-jc-grande{
+    font-size:38px;
+    letter-spacing:-1px;
+    margin-top:16px;
+    color:#fff3d3;
+}
+#recibo[data-temporada="navidad"] .fiesta-jc .fiesta-jc-titulo{
+    font-size:12px;
+    letter-spacing:1.4px;
+    color:#f5ce85;
+}
+#recibo[data-temporada="navidad"] .receipt-total{
+    background:#9b2438;
+    border-left:5px solid #d9b563;
+}
+
+#recibo[data-temporada="nuevo"] .receipt-header{
+    background:linear-gradient(120deg,#141329,#34315f);
+}
+#recibo[data-temporada="nuevo"] #temporadaReciboJC.fiesta-jc{
+    background:#1b1937;
+    color:#fff3db;
+}
+#recibo[data-temporada="nuevo"] .fiesta-jc .fiesta-jc-grande{
+    font-size:64px;
+    letter-spacing:-2px;
+    margin-top:14px;
+}
+#recibo[data-temporada="nuevo"] .fiesta-jc .fiesta-jc-titulo{
+    font-size:16px;
+}
+#recibo[data-temporada="nuevo"] .receipt-total{
+    background:linear-gradient(110deg,#201e43,#403763);
+    border-left:5px solid #d5ad60;
+}
+
+#recibo[data-temporada="madres"] .receipt-header{
+    background:linear-gradient(120deg,#63223d,#913e5c);
+}
+#recibo[data-temporada="madres"] #temporadaReciboJC.fiesta-jc{
+    background:#fff0f3;
+    color:#702943;
+    border-top-color:#e8aec0;
+    border-bottom-color:#b76382;
+}
+#recibo[data-temporada="madres"] .fiesta-jc .fiesta-jc-grande{
+    font-size:58px;
+    letter-spacing:-2px;
+    color:#8a2e50;
+    text-shadow:none;
+    margin-top:14px;
+}
+#recibo[data-temporada="madres"] .fiesta-jc .fiesta-jc-titulo{
+    font-size:14px;
+    letter-spacing:1px;
+}
+#recibo[data-temporada="madres"] .receipt-total{
+    background:#792c49;
+    border-left:5px solid #e3a5b9;
+}
+
+#recibo:not([data-temporada="habitual"]) .receipt-customer{
+    border-left:4px solid var(--jc-acento);
+}
+#recibo:not([data-temporada="habitual"]) .receipt-delivery{
+    border-left:4px solid var(--jc-acento);
+}
+#recibo:not([data-temporada="habitual"]) .receipt-thanks{
+    background:var(--jc-fondo);
+    border:1px solid var(--jc-acento);
+    border-radius:12px;
+    padding:14px 10px;
+    margin-top:16px;
+}
+#recibo:not([data-temporada="habitual"]) .receipt-thanks .gracias{
+    font-size:17px;
+    line-height:1.4;
+    color:var(--jc-tinta);
+}
+#recibo .receipt-signature{
+    margin-left:0;
+    margin-right:0;
+    flex-wrap:wrap;
+    justify-content:center;
+    text-align:center;
+}
+
+@media(max-width:360px){
+    #recibo .fiesta-jc .fiesta-jc-contenido{
+        padding-left:44px;
+        padding-right:44px;
+    }
+    #recibo[data-temporada="navidad"] .fiesta-jc .fiesta-jc-grande{
+        font-size:32px;
+    }
+    #recibo[data-temporada="nuevo"] .fiesta-jc .fiesta-jc-grande{
+        font-size:54px;
+    }
+    #recibo[data-temporada="madres"] .fiesta-jc .fiesta-jc-grande{
+        font-size:48px;
+    }
+    #recibo .fiesta-jc .fiesta-jc-etiqueta{
+        font-size:9px;
+        letter-spacing:.8px;
+    }
+}
